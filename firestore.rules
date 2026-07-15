@@ -1,0 +1,137 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net - default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions for Schema and Type Validation
+    function isValidUser(data) {
+      return data.email is string && data.email.size() <= 100 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.role is string && (data.role == "Super Administrator" || data.role == "Administrator" || data.role == "Staff" || data.role == "Customer") &&
+             data.status is string && (data.status == "Active" || data.status == "Disabled");
+    }
+
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() <= 100 &&
+             data.priceMwk is number && data.priceMwk >= 0 &&
+             data.stockLevel is number && data.stockLevel >= 0;
+    }
+
+    function isValidCategory(data) {
+      return data.name is string && data.name.size() <= 100;
+    }
+
+    function isValidOrder(data) {
+      return data.customerId is string && data.customerId.size() <= 100 &&
+             data.status is string && (data.status == "Pending" || data.status == "Confirmed" || data.status == "Processing" || data.status == "Delivered" || data.status == "Cancelled") &&
+             data.totalAmount is number && data.totalAmount >= 0;
+    }
+
+    function isValidQuotation(data) {
+      return data.customerEmail is string && data.customerEmail.size() <= 100 &&
+             data.status is string && (data.status == "Pending" || data.status == "Responded" || data.status == "Closed");
+    }
+
+    function isValidSetting(data) {
+      return data.companyName is string && data.companyName.size() <= 100 &&
+             data.email is string && data.email.size() <= 100;
+    }
+
+    // Collections Section
+
+    // USERS COLLECTION
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isValidUser(request.resource.data);
+      allow delete: if true;
+    }
+
+    // PRODUCTS COLLECTION
+    match /products/{productId} {
+      allow read: if true; // Public catalog
+      allow create, update: if isValidProduct(request.resource.data);
+      allow delete: if true;
+    }
+
+    // CATEGORIES COLLECTION
+    match /categories/{categoryId} {
+      allow read: if true; // Public categories
+      allow create, update: if isValidCategory(request.resource.data);
+      allow delete: if true;
+    }
+
+    // ORDERS COLLECTION
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create, update: if isValidOrder(request.resource.data);
+      allow delete: if true;
+    }
+
+    // QUOTATIONS COLLECTION
+    match /quotations/{quotationId} {
+      allow read: if true;
+      allow create, update: if isValidQuotation(request.resource.data);
+      allow delete: if true;
+    }
+
+    // INVENTORY TRANSACTION COLLECTION
+    match /inventory/{transactionId} {
+      allow read, write: if true;
+    }
+
+    // GALLERY COLLECTION
+    match /gallery/{galleryId} {
+      allow read, write: if true; // Public gallery
+    }
+
+    // TESTIMONIALS COLLECTION
+    match /testimonials/{testimonialId} {
+      allow read, write: if true; // Public testimonials
+    }
+
+    // SERVICES COLLECTION
+    match /services/{serviceId} {
+      allow read, write: if true; // Public services
+    }
+
+    // NEWS COLLECTION
+    match /news/{newsId} {
+      allow read, write: if true; // Public news
+    }
+
+    // FAQS COLLECTION
+    match /faqs/{faqId} {
+      allow read, write: if true; // Public FAQs
+    }
+
+    // CONTACT MESSAGES COLLECTION
+    match /contact_messages/{messageId} {
+      allow read, write: if true;
+    }
+
+    // NEWSLETTER SUBSCRIBERS COLLECTION
+    match /newsletter_subscribers/{subscriberId} {
+      allow read, write: if true;
+    }
+
+    // NOTIFICATIONS COLLECTION
+    match /notifications/{notificationId} {
+      allow read, write: if true;
+    }
+
+    // AUDIT LOGS COLLECTION
+    match /audit_logs/{logId} {
+      allow read, write: if true;
+    }
+
+    // SETTINGS COLLECTION
+    match /settings/{settingId} {
+      allow read: if true; // Publicly readable settings
+      allow create, update: if isValidSetting(request.resource.data);
+      allow delete: if true;
+    }
+  }
+}

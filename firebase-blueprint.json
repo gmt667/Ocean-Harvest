@@ -1,0 +1,303 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profiles and permissions for the Ocean Harvest platform",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "passwordHash": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["Super Administrator", "Administrator", "Staff", "Customer"] },
+        "status": { "type": "string", "enum": ["Active", "Disabled"] },
+        "mustChangePassword": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "name", "role", "status"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Agricultural products and food commodities",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "priceMwk": { "type": "number" },
+        "stockLevel": { "type": "number" },
+        "unit": { "type": "string" },
+        "isFeatured": { "type": "boolean" }
+      },
+      "required": ["id", "name", "description", "category", "priceMwk", "stockLevel"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product categories",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase orders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Confirmed", "Processing", "Delivered", "Cancelled"] },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "trackingNotes": { "type": "string" }
+      },
+      "required": ["id", "customerId", "status", "items", "totalAmount", "createdAt"]
+    },
+    "Quotation": {
+      "title": "Quotation",
+      "description": "Customer requests for quotes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "quantity": { "type": "number" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Responded", "Closed"] },
+        "responsePriceMwk": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "customerName", "customerEmail", "productId", "quantity", "status", "createdAt"]
+    },
+    "InventoryTransaction": {
+      "title": "InventoryTransaction",
+      "description": "Stock movements in or out of the warehouse",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "type": { "type": "string", "enum": ["Stock In", "Stock Out"] },
+        "quantity": { "type": "number" },
+        "reason": { "type": "string" },
+        "operatorName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "productId", "type", "quantity", "createdAt"]
+    },
+    "GalleryItem": {
+      "title": "GalleryItem",
+      "description": "Image showcasing stock, warehouses, or processes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "title", "imageUrl", "category"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "Client feedback and endorsements",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "content": { "type": "string" },
+        "rating": { "type": "number" }
+      },
+      "required": ["id", "name", "content"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "Offered services of Ocean General Dealers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "iconName": { "type": "string" }
+      },
+      "required": ["id", "title", "description"]
+    },
+    "NewsItem": {
+      "title": "NewsItem",
+      "description": "News, updates, and announcements",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "content", "createdAt"]
+    },
+    "FaqItem": {
+      "title": "FaqItem",
+      "description": "Frequently Asked Questions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "question": { "type": "string" },
+        "answer": { "type": "string" }
+      },
+      "required": ["id", "question", "answer"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Customer contact form queries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "message", "createdAt"]
+    },
+    "NewsletterSubscriber": {
+      "title": "NewsletterSubscriber",
+      "description": "Subscribers for newsletters",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "System alerts and notifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["order", "stock", "user", "contact"] },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "message", "type", "isRead", "createdAt"]
+    },
+    "AuditLogItem": {
+      "title": "AuditLogItem",
+      "description": "Audit logging for tracking operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "ipAddress": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userName", "userEmail", "action", "createdAt"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "System global variables and customizations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyName": { "type": "string" },
+        "brandName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone1": { "type": "string" },
+        "phone2": { "type": "string" },
+        "phone3": { "type": "string" },
+        "address": { "type": "string" },
+        "vatRate": { "type": "number" },
+        "logoUrl": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "secondaryColor": { "type": "string" },
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" }
+      },
+      "required": ["id", "companyName", "brandName", "email", "address"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "System users list"
+    },
+    "products": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Catalog of available agricultural products"
+    },
+    "categories": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Product categories list"
+    },
+    "orders": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Purchases and order details"
+    },
+    "quotations": {
+      "schema": { "$ref": "#/entities/Quotation" },
+      "description": "Quotation requests"
+    },
+    "inventory": {
+      "schema": { "$ref": "#/entities/InventoryTransaction" },
+      "description": "Warehouse stock transaction records"
+    },
+    "gallery": {
+      "schema": { "$ref": "#/entities/GalleryItem" },
+      "description": "System photo gallery"
+    },
+    "testimonials": {
+      "schema": { "$ref": "#/entities/Testimonial" },
+      "description": "Client dynamic testimonials"
+    },
+    "services": {
+      "schema": { "$ref": "#/entities/Service" },
+      "description": "Dynamic business services"
+    },
+    "news": {
+      "schema": { "$ref": "#/entities/NewsItem" },
+      "description": "News and announcements articles"
+    },
+    "faqs": {
+      "schema": { "$ref": "#/entities/FaqItem" },
+      "description": "FAQs and answers"
+    },
+    "contact_messages": {
+      "schema": { "$ref": "#/entities/ContactMessage" },
+      "description": "Feedback and contact submissions"
+    },
+    "newsletter_subscribers": {
+      "schema": { "$ref": "#/entities/NewsletterSubscriber" },
+      "description": "Subscribed newsletter emails"
+    },
+    "notifications": {
+      "schema": { "$ref": "#/entities/NotificationItem" },
+      "description": "Dashboard alert notifications"
+    },
+    "audit_logs": {
+      "schema": { "$ref": "#/entities/AuditLogItem" },
+      "description": "Logging of all administrative changes"
+    },
+    "settings": {
+      "schema": { "$ref": "#/entities/Setting" },
+      "description": "Application custom branding and business variables"
+    }
+  }
+}
