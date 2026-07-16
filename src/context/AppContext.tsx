@@ -77,9 +77,9 @@ interface AppContextType {
   loginWithFacebook: () => Promise<{ success: boolean; error?: string; user?: User }>;
   loginWithApple: () => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => Promise<void>;
-  register: (name: string, email: string, passwordPlain: string, phone: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, passwordPlain: string, phone: string, poBox?: string) => Promise<{ success: boolean; error?: string }>;
   changePassword: (newPasswordPlain: string) => Promise<void>;
-  updateUserProfile: (uid: string, name: string, email: string, phone?: string) => Promise<void>;
+  updateUserProfile: (uid: string, name: string, email: string, phone?: string, poBox?: string) => Promise<void>;
   fbAuthUser: FirebaseUser | null;
   reloadAuthUser: () => Promise<boolean>;
   resendVerificationEmail: () => Promise<void>;
@@ -750,7 +750,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // REGISTER CUSTOMER WITH FIREBASE AUTH & EMAIL VERIFICATION
-  const register = async (name: string, email: string, passwordPlain: string, phone: string) => {
+  const register = async (name: string, email: string, passwordPlain: string, phone: string, poBox?: string) => {
     try {
       const emailLower = email.toLowerCase();
       // Check duplicate in Firestore by email
@@ -784,6 +784,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         passwordHash: passHash,
         name,
         phone,
+        poBox,
         role: UserRole.CUSTOMER,
         status: UserStatus.ACTIVE,
         mustChangePassword: false,
@@ -862,7 +863,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // UPDATE USER PROFILE
-  const updateUserProfile = async (uid: string, name: string, email: string, phone?: string) => {
+  const updateUserProfile = async (uid: string, name: string, email: string, phone?: string, poBox?: string) => {
     try {
       const userRef = doc(db, "users", uid);
       const emailLower = email.toLowerCase();
@@ -870,11 +871,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (phone !== undefined) {
         updates.phone = phone;
       }
+      if (poBox !== undefined) {
+        updates.poBox = poBox;
+      }
       await updateDoc(userRef, updates);
       if (currentUser && currentUser.uid === uid) {
         const updated = { ...currentUser, name, email: emailLower };
         if (phone !== undefined) {
           updated.phone = phone;
+        }
+        if (poBox !== undefined) {
+          updated.poBox = poBox;
         }
         setCurrentUser(updated);
         localStorage.setItem("ocean_harvest_user", JSON.stringify(updated));

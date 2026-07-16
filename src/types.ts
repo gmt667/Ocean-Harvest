@@ -16,6 +16,7 @@ export interface User {
   passwordHash?: string;
   name: string;
   phone?: string;
+  poBox?: string;
   role: UserRole;
   status: UserStatus;
   mustChangePassword?: boolean;

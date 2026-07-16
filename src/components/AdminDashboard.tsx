@@ -752,6 +752,7 @@ export const AdminDashboard: React.FC = () => {
                     <tr>
                       <th className="px-6 py-4">Customer Name</th>
                       <th className="px-6 py-4">Email Address</th>
+                      <th className="px-6 py-4">P.O. Box Address</th>
                       <th className="px-6 py-4">Registered Date</th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-right">Orders placed</th>
@@ -766,6 +767,7 @@ export const AdminDashboard: React.FC = () => {
                           <tr key={c.uid}>
                             <td className="px-6 py-4 font-bold text-gray-800">{c.name}</td>
                             <td className="px-6 py-4 text-gray-500">{c.email}</td>
+                            <td className="px-6 py-4 text-gray-500 font-semibold">{c.poBox || "—"}</td>
                             <td className="px-6 py-4 text-gray-400 text-3xs">{new Date(c.createdAt).toLocaleDateString()}</td>
                             <td className="px-6 py-4">
                               <span className={`px-2 py-0.5 rounded-full text-3xs font-extrabold ${c.status === UserStatus.ACTIVE ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
@@ -965,6 +967,7 @@ export const AdminDashboard: React.FC = () => {
                       <th className="px-6 py-4">Name</th>
                       <th className="px-6 py-4">Email</th>
                       <th className="px-6 py-4">Phone</th>
+                      <th className="px-6 py-4">P.O. Box</th>
                       <th className="px-6 py-4">Role</th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-right">Actions</th>
@@ -976,6 +979,7 @@ export const AdminDashboard: React.FC = () => {
                         <td className="px-6 py-4 font-bold text-gray-800">{u.name}</td>
                         <td className="px-6 py-4 text-gray-500">{u.email}</td>
                         <td className="px-6 py-4 text-gray-500">{u.phone || "—"}</td>
+                        <td className="px-6 py-4 text-gray-500 font-semibold">{u.poBox || "—"}</td>
                         <td className="px-6 py-4">
                           <span
                             className="px-2.5 py-0.5 rounded-full text-3xs font-extrabold tracking-wider uppercase"

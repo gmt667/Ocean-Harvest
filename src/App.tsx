@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { z } from "zod";
 import { AppProvider, useApp } from "./context/AppContext";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
@@ -24,12 +25,27 @@ import {
   Eye,
   EyeOff,
   Info,
-  Phone
+  Phone,
+  MapPin
 } from "lucide-react";
 import { UserRole } from "./types";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth, db } from "./firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+
+// Zod schemas for real-time authentication form validation
+const nameSchema = z.string().min(3, "Name must be at least 3 characters");
+const phoneSchema = z.string().min(8, "Phone must be at least 8 digits");
+const poBoxSchema = z.string().min(3, "P.O. Box must be at least 3 characters");
+const emailSchema = z.string().email("Invalid email address format");
+const forgotEmailOrPhoneSchema = z.string().min(8, "Must be at least 8 characters");
+
+const registerPasswordSchema = z.string()
+  .min(8, "Must be at least 8 characters")
+  .refine((val) => /[0-9]/.test(val), "Must include at least one number")
+  .refine((val) => /[^A-Za-z0-9]/.test(val), "Must include at least one special symbol");
+
+const loginPasswordSchema = z.string().min(6, "Password must be at least 6 characters");
 
 function MainAppContent() {
   const [currentTab, setTab] = useState<string>("home");
@@ -40,13 +56,14 @@ function MainAppContent() {
   const [authPassword, setAuthPassword] = useState("");
   const [authName, setAuthName] = useState("");
   const [authPhone, setAuthPhone] = useState("");
+  const [authPoBox, setAuthPoBox] = useState("");
   const [authError, setAuthError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shake, setShake] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [focusedField, setFocusedField] = useState<"name" | "phone" | "email" | "password" | null>(null);
+  const [focusedField, setFocusedField] = useState<"name" | "phone" | "pobox" | "email" | "password" | null>(null);
   const [isCapsLockOn, setIsCapsLockOn] = useState(false);
 
   const checkCapsLock = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -78,6 +95,58 @@ function MainAppContent() {
   const pwdScore = authPassword.length === 0 
     ? 0 
     : (hasMinLength ? 1 : 0) + (hasNumber ? 1 : 0) + (hasSpecial ? 1 : 0);
+
+  // Dynamic Zod Validation Statuses
+  const fieldValidation = useMemo(() => {
+    const results = {
+      name: { isValid: false, error: "" },
+      phone: { isValid: false, error: "" },
+      pobox: { isValid: false, error: "" },
+      email: { isValid: false, error: "" },
+      password: { isValid: false, error: "" },
+    };
+
+    // 1. Name validation
+    const nameVal = nameSchema.safeParse(authName.trim());
+    results.name = {
+      isValid: nameVal.success,
+      error: nameVal.success ? "" : nameVal.error.issues[0]?.message || "",
+    };
+
+    // 2. Phone validation
+    const phoneVal = phoneSchema.safeParse(authPhone.trim());
+    results.phone = {
+      isValid: phoneVal.success,
+      error: phoneVal.success ? "" : phoneVal.error.issues[0]?.message || "",
+    };
+
+    // 3. PO Box validation
+    const poBoxVal = poBoxSchema.safeParse(authPoBox.trim());
+    results.pobox = {
+      isValid: poBoxVal.success,
+      error: poBoxVal.success ? "" : poBoxVal.error.issues[0]?.message || "",
+    };
+
+    // 4. Email validation
+    const emailVal = (authModal === "forgot")
+      ? forgotEmailOrPhoneSchema.safeParse(authEmail.trim())
+      : emailSchema.safeParse(authEmail.trim());
+    results.email = {
+      isValid: emailVal.success,
+      error: emailVal.success ? "" : emailVal.error.issues[0]?.message || "",
+    };
+
+    // 5. Password validation
+    const pwdVal = (authModal === "register")
+      ? registerPasswordSchema.safeParse(authPassword)
+      : loginPasswordSchema.safeParse(authPassword);
+    results.password = {
+      isValid: pwdVal.success,
+      error: pwdVal.success ? "" : pwdVal.error.issues[0]?.message || "",
+    };
+
+    return results;
+  }, [authName, authPhone, authPoBox, authEmail, authPassword, authModal]);
 
   // Input refs for automatic mobile focus and virtual keyboard trigger
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -130,6 +199,7 @@ function MainAppContent() {
     setAuthPassword("");
     setAuthName("");
     setAuthPhone("");
+    setAuthPoBox("");
     setShowPassword(false);
     setAuthModal(mode);
   };
@@ -199,12 +269,17 @@ function MainAppContent() {
           setIsSubmitting(false);
           return;
         }
+        if (!authPoBox.trim()) {
+          setAuthError("P.O. Box is required for accurate business billing and delivery records.");
+          setIsSubmitting(false);
+          return;
+        }
         if (!hasMinLength || !hasNumber || !hasSpecial) {
           setAuthError("Password does not meet the security strength requirements. Please ensure all conditions are green.");
           setIsSubmitting(false);
           return;
         }
-        const res = await register(authName.trim(), authEmail.trim(), authPassword, authPhone.trim());
+        const res = await register(authName.trim(), authEmail.trim(), authPassword, authPhone.trim(), authPoBox.trim());
         if (res.success) {
           setAuthModal(null);
           setTab("dashboard");
@@ -341,6 +416,14 @@ function MainAppContent() {
               <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
               <motion.div
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.8 }}
+                onDragEnd={(event, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 500) {
+                    setAuthModal(null);
+                  }
+                }}
                 initial={{ opacity: 0, scale: 0.95, y: 15, x: 0 }}
                 animate={{
                   opacity: 1,
@@ -353,11 +436,14 @@ function MainAppContent() {
                   x: { duration: 0.5, ease: "easeInOut" },
                   default: { duration: 0.3 }
                 }}
-                className="relative inline-block w-full max-w-md bg-white rounded-2xl sm:rounded-3xl text-left overflow-hidden shadow-2xl p-6 sm:p-8 space-y-5 sm:space-y-6 border border-slate-100 my-auto"
+                className="relative inline-block w-full max-w-md bg-white rounded-2xl sm:rounded-3xl text-left overflow-hidden shadow-2xl p-6 sm:p-8 space-y-5 sm:space-y-6 border border-slate-100 my-auto cursor-grab active:cursor-grabbing"
               >
+                {/* Mobile Drag Indicator */}
+                <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto sm:hidden -mt-2 mb-2 cursor-grab active:cursor-grabbing" />
+
                 <button
                   onClick={() => setAuthModal(null)}
-                  className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 p-3.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
                   aria-label="Close dialog"
                 >
                   <X className="w-5 h-5" />
@@ -400,10 +486,10 @@ function MainAppContent() {
                         />
                         {authName.length > 0 && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                            {authName.trim().length >= 3 ? (
+                            {fieldValidation.name.isValid ? (
                               <Check className="w-4 h-4 text-emerald-500" />
                             ) : (
-                              <X className="w-4 h-4 text-rose-500" />
+                              <AlertCircle className="w-4 h-4 text-rose-500 cursor-help" title={fieldValidation.name.error} />
                             )}
                           </div>
                         )}
@@ -445,10 +531,10 @@ function MainAppContent() {
                         />
                         {authPhone.length > 0 && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                            {authPhone.trim().length >= 8 ? (
+                            {fieldValidation.phone.isValid ? (
                               <Check className="w-4 h-4 text-emerald-500" />
                             ) : (
-                              <X className="w-4 h-4 text-rose-500" />
+                              <AlertCircle className="w-4 h-4 text-rose-500 cursor-help" title={fieldValidation.phone.error} />
                             )}
                           </div>
                         )}
@@ -464,6 +550,51 @@ function MainAppContent() {
                               <div className="space-y-0.5 text-left">
                                 <p className="font-bold text-white text-xs">Phone Number Expectation</p>
                                 <p className="text-slate-300 leading-normal">Enter your active mobile number (at least 8 digits). This enables password recovery support and delivery updates.</p>
+                              </div>
+                              <div className="absolute top-full left-6 w-3 h-3 bg-slate-900 border-r border-b border-slate-800 rotate-45 -translate-y-[6px]" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  )}
+
+                  {authModal === "register" && (
+                    <div>
+                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">P.O. Box *</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
+                        <input
+                          type="text"
+                          required
+                          value={authPoBox}
+                          onChange={(e) => setAuthPoBox(e.target.value)}
+                          onFocus={() => setFocusedField("pobox")}
+                          onBlur={() => setFocusedField(null)}
+                          className="w-full pl-11 pr-10 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm transition-all focus:outline-none focus:bg-white focus:ring-4 focus:ring-emerald-950/10 focus:border-emerald-900"
+                          placeholder="e.g. P.O. Box X273, Lilongwe, Malawi"
+                        />
+                        {authPoBox.length > 0 && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                            {fieldValidation.pobox.isValid ? (
+                              <Check className="w-4 h-4 text-emerald-500" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-rose-500 cursor-help" title={fieldValidation.pobox.error} />
+                            )}
+                          </div>
+                        )}
+                        <AnimatePresence>
+                          {focusedField === "pobox" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                              className="absolute bottom-full left-0 mb-3 w-full z-10 bg-slate-900 text-white text-2xs sm:text-xs rounded-xl p-3 shadow-xl border border-slate-800 flex items-start gap-2.5"
+                            >
+                              <Info className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                              <div className="space-y-0.5 text-left">
+                                <p className="font-bold text-white text-xs">P.O. Box Address Expectation</p>
+                                <p className="text-slate-300 leading-normal">Enter your business mailing or P.O. Box address (at least 3 characters) to ensure accurate tax billing, quotation preparation, and physical dispatch records.</p>
                               </div>
                               <div className="absolute top-full left-6 w-3 h-3 bg-slate-900 border-r border-b border-slate-800 rotate-45 -translate-y-[6px]" />
                             </motion.div>
@@ -492,10 +623,10 @@ function MainAppContent() {
                       />
                       {authEmail.length > 0 && (
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                          {(authModal === "forgot" ? (authEmail.trim().length >= 8) : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)) ? (
+                          {fieldValidation.email.isValid ? (
                             <Check className="w-4 h-4 text-emerald-500" />
                           ) : (
-                            <X className="w-4 h-4 text-rose-500" />
+                            <AlertCircle className="w-4 h-4 text-rose-500 cursor-help" title={fieldValidation.email.error} />
                           )}
                         </div>
                       )}
@@ -533,7 +664,7 @@ function MainAppContent() {
                           <button
                             type="button"
                             onClick={() => handleOpenAuth("forgot")}
-                            className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 hover:underline transition-colors focus:outline-none"
+                            className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 hover:underline transition-colors focus:outline-none py-2 px-3 -my-2 -mr-3"
                           >
                             Forgot password?
                           </button>
@@ -550,17 +681,17 @@ function MainAppContent() {
                           onKeyUp={checkCapsLock}
                           onFocus={() => setFocusedField("password")}
                           onBlur={() => {
-                            setFocusedField(null);
-                            setIsCapsLockOn(false);
+                             setFocusedField(null);
+                             setIsCapsLockOn(false);
                           }}
                           className="w-full pl-11 pr-20 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm transition-all focus:outline-none focus:bg-white focus:ring-4 focus:ring-emerald-950/10 focus:border-emerald-900"
                           placeholder="••••••••"
                         />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="p-1 text-slate-400 hover:text-slate-700 focus:outline-none transition-colors rounded-lg hover:bg-slate-100"
+                            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-700 focus:outline-none transition-colors rounded-xl hover:bg-slate-100"
                             title={showPassword ? "Hide password" : "Show password"}
                           >
                             {showPassword ? (
@@ -570,11 +701,11 @@ function MainAppContent() {
                             )}
                           </button>
                           {authPassword.length > 0 && (
-                            <div className="flex items-center justify-center">
-                              {((authModal === "register" && pwdScore === 3) || (authModal === "login" && authPassword.length >= 6)) ? (
+                            <div className="flex items-center justify-center pr-2">
+                              {fieldValidation.password.isValid ? (
                                 <Check className="w-4 h-4 text-emerald-500" />
                               ) : (
-                                <X className="w-4 h-4 text-rose-500" />
+                                <AlertCircle className="w-4 h-4 text-rose-500 cursor-help" title={fieldValidation.password.error} />
                               )}
                             </div>
                           )}
@@ -624,17 +755,19 @@ function MainAppContent() {
                       </AnimatePresence>
 
                       {authModal === "login" && (
-                        <div className="flex items-center mt-3" id="remember_me_container">
-                          <input
-                            id="remember_me"
-                            name="remember_me"
-                            type="checkbox"
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
-                            className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                          />
-                          <label htmlFor="remember_me" className="ml-2 block text-xs font-semibold text-slate-600 cursor-pointer select-none">
-                            Remember Me
+                        <div className="flex items-center -mx-2" id="remember_me_container">
+                          <label htmlFor="remember_me" className="flex items-center gap-2.5 py-3 px-2 w-full cursor-pointer select-none">
+                            <input
+                              id="remember_me"
+                              name="remember_me"
+                              type="checkbox"
+                              checked={rememberMe}
+                              onChange={(e) => setRememberMe(e.target.checked)}
+                              className="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                            />
+                            <span className="block text-xs font-semibold text-slate-600">
+                              Remember Me
+                            </span>
                           </label>
                         </div>
                       )}
@@ -761,7 +894,7 @@ function MainAppContent() {
                           type="button"
                           onClick={handleGoogleSignIn}
                           disabled={isSubmitting}
-                          className="col-span-1 py-3 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm hover:shadow-md active:scale-[0.98] transition-all flex items-center justify-center space-x-2 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:opacity-50 disabled:pointer-events-none"
+                          className="col-span-1 py-3.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm hover:shadow-md active:scale-[0.98] transition-all flex items-center justify-center space-x-2 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:opacity-50 disabled:pointer-events-none"
                         >
                           <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -776,7 +909,7 @@ function MainAppContent() {
                           type="button"
                           onClick={handleFacebookSignIn}
                           disabled={isSubmitting}
-                          className="col-span-1 py-3 px-3 bg-[#1877F2] hover:bg-[#166FE5] text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-md hover:shadow-blue-500/15 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:pointer-events-none"
+                          className="col-span-1 py-3.5 px-3 bg-[#1877F2] hover:bg-[#166FE5] text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-md hover:shadow-blue-500/15 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:pointer-events-none"
                         >
                           <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
@@ -788,7 +921,7 @@ function MainAppContent() {
                           type="button"
                           onClick={handleAppleSignIn}
                           disabled={isSubmitting}
-                          className="col-span-2 py-3 px-4 bg-black hover:bg-neutral-900 text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-md hover:shadow-black/15 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:opacity-50 disabled:pointer-events-none"
+                          className="col-span-2 py-3.5 px-4 bg-black hover:bg-neutral-900 text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-md hover:shadow-black/15 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:opacity-50 disabled:pointer-events-none"
                         >
                           <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.029-3.91 1.183-4.961 3.014-2.117 3.675-.54 9.103 1.51 12.06 1.005 1.45 2.187 3.07 3.766 3.01 1.524-.06 2.098-.98 3.94-.98 1.83 0 2.35.98 3.945.95 1.646-.03 2.683-1.46 3.682-2.92 1.154-1.69 1.63-3.33 1.66-3.41-.03-.01-3.19-1.22-3.22-4.85-.03-3.03 2.48-4.49 2.59-4.56-1.43-2.1-3.65-2.33-4.44-2.38-2.1-.17-3.32 1.11-3.95 1.11zM15.424 3.716c.866-1.05 1.45-2.51 1.29-3.97-1.25.05-2.77.83-3.67 1.88-.78.91-1.46 2.39-1.28 3.82 1.39.11 2.8-.73 3.66-1.73z" />
@@ -804,7 +937,7 @@ function MainAppContent() {
                       <button
                         type="button"
                         onClick={() => handleOpenAuth("register")}
-                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 hover:underline py-2 px-3 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-100"
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 hover:underline py-3 px-4 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-slate-100"
                       >
                         Need a customer profile? Register here
                       </button>
@@ -813,7 +946,7 @@ function MainAppContent() {
                       <button
                         type="button"
                         onClick={() => handleOpenAuth("login")}
-                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 hover:underline py-2 px-3 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-100"
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 hover:underline py-3 px-4 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-slate-100"
                       >
                         Already have a profile? Sign in here
                       </button>
@@ -822,7 +955,7 @@ function MainAppContent() {
                       <button
                         type="button"
                         onClick={() => handleOpenAuth("login")}
-                        className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 hover:underline py-2 px-3 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-100"
+                        className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 hover:underline py-3 px-4 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-slate-100"
                       >
                         Back to Log In
                       </button>

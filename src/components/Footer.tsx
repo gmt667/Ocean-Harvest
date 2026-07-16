@@ -131,7 +131,7 @@ export const Footer: React.FC<FooterProps> = ({ setTab }) => {
             <ul className="space-y-4 text-xs text-gray-400">
               <li className="flex items-start space-x-3">
                 <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                <span>{settings?.address || "P.O Box X273 Lilongwe"}</span>
+                <span>{settings?.address || "P.O Box X273 Lilongwe, Malawi"}</span>
               </li>
               <li className="flex items-start space-x-3">
                 <Phone className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />

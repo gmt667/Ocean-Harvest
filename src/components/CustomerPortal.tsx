@@ -52,6 +52,7 @@ export const CustomerPortal: React.FC = () => {
   const [name, setName] = useState(currentUser?.name || "");
   const [email, setEmail] = useState(currentUser?.email || "");
   const [phone, setPhone] = useState(currentUser?.phone || "");
+  const [poBox, setPoBox] = useState(currentUser?.poBox || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [profileSuccess, setProfileSuccess] = useState(false);
@@ -139,7 +140,7 @@ export const CustomerPortal: React.FC = () => {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
-    await updateUserProfile(currentUser.uid, name, email, phone);
+    await updateUserProfile(currentUser.uid, name, email, phone, poBox);
     setProfileSuccess(true);
     setTimeout(() => setProfileSuccess(false), 4000);
   };
@@ -559,8 +560,8 @@ export const CustomerPortal: React.FC = () => {
 
               {/* Personal Info */}
               <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-lg">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Personal Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Personal & Billing Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-3xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
                     <input
@@ -590,6 +591,17 @@ export const CustomerPortal: React.FC = () => {
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-green-500"
                       placeholder="+265..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-3xs font-bold text-gray-500 uppercase mb-1">P.O. Box Address</label>
+                    <input
+                      type="text"
+                      required
+                      value={poBox}
+                      onChange={(e) => setPoBox(e.target.value)}
+                      className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-green-500"
+                      placeholder="e.g. P.O Box X273 Lilongwe, Malawi"
                     />
                   </div>
                 </div>
@@ -722,7 +734,7 @@ export const CustomerPortal: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-extrabold text-gray-900">{settings?.companyName || "Ocean General Dealers"}</h3>
                   <p className="text-3xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Ocean Harvest Brand</p>
-                  <p className="text-2xs text-gray-500 mt-2">{settings?.address || "P.O Box X273 Lilongwe"}</p>
+                  <p className="text-2xs text-gray-500 mt-2">{settings?.address || "P.O Box X273 Lilongwe, Malawi"}</p>
                   <p className="text-2xs text-gray-500">Call: {settings?.phone1 || "+265 993 86 16 49"}</p>
                 </div>
                 <div className="text-right sm:text-right">

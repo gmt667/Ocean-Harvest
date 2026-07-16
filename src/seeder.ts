@@ -28,7 +28,7 @@ export async function runSeeder() {
         phone1: "+265 993 86 16 49",
         phone2: "+265 882 638 704",
         phone3: "+265 992 145 083",
-        address: "P.O Box X273 Lilongwe",
+        address: "P.O Box X273 Lilongwe, Malawi",
         vatRate: 16.5,
         logoUrl: "https://images.unsplash.com/photo-1530982009887-a6538b8291a4?w=150&auto=format&fit=crop&q=60", // dynamic or custom placeholder
         primaryColor: "#022c22", // deep emerald-950
@@ -38,6 +38,9 @@ export async function runSeeder() {
       };
       await setDoc(doc(db, "settings", "global"), defaultSettings);
       console.log("Seeded settings.");
+    } else {
+      // Sync address updates for already seeded databases too
+      await setDoc(doc(db, "settings", "global"), { address: "P.O Box X273 Lilongwe, Malawi" }, { merge: true });
     }
 
     // 2. Seed SUPER ADMINISTRATOR

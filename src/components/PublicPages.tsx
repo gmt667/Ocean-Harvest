@@ -1164,7 +1164,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                       <div>
                         <p className="text-xs font-bold text-gray-900">Physical Warehouse Address</p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {settings?.address || "P.O Box X273 Lilongwe"}
+                          {settings?.address || "P.O Box X273 Lilongwe, Malawi"}
                         </p>
                       </div>
                     </div>
@@ -1499,7 +1499,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                   </div>
                   <div className="space-y-1 text-xs text-gray-500 sm:text-right">
                     <p className="font-bold text-gray-800">Physical Location:</p>
-                    <p>{settings?.address || "P.O Box X273 Lilongwe"}</p>
+                    <p>{settings?.address || "P.O Box X273 Lilongwe, Malawi"}</p>
                     <p className="font-bold text-gray-800 mt-2">Business Inquiries:</p>
                     <p>{settings?.email || "Oceangeneraldealers23@gmail.com"}</p>
                     <p className="font-semibold text-emerald-800">{settings?.phone1 || "+265 993 86 16 49"} / {settings?.phone2 || "+265 882 638 704"}</p>
