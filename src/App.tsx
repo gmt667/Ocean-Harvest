@@ -23,11 +23,13 @@ import {
   Check,
   Eye,
   EyeOff,
-  Info
+  Info,
+  Phone
 } from "lucide-react";
 import { UserRole } from "./types";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth, db } from "./firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 function MainAppContent() {
   const [currentTab, setTab] = useState<string>("home");
@@ -37,13 +39,14 @@ function MainAppContent() {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authName, setAuthName] = useState("");
+  const [authPhone, setAuthPhone] = useState("");
   const [authError, setAuthError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shake, setShake] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [focusedField, setFocusedField] = useState<"name" | "email" | "password" | null>(null);
+  const [focusedField, setFocusedField] = useState<"name" | "phone" | "email" | "password" | null>(null);
   const [isCapsLockOn, setIsCapsLockOn] = useState(false);
 
   const checkCapsLock = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -126,6 +129,7 @@ function MainAppContent() {
     }
     setAuthPassword("");
     setAuthName("");
+    setAuthPhone("");
     setShowPassword(false);
     setAuthModal(mode);
   };
@@ -138,16 +142,41 @@ function MainAppContent() {
 
     try {
       if (authModal === "forgot") {
-        if (!authEmail.trim()) {
-          setAuthError("Email address is required.");
+        const inputVal = authEmail.trim();
+        if (!inputVal) {
+          setAuthError("Email address or phone number is required.");
           setIsSubmitting(false);
           return;
         }
-        await sendPasswordResetEmail(auth, authEmail);
-        setResetSuccess("A secure reset link has been sent to your email. Check your inbox to complete the credentials reset.");
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputVal);
+        if (isEmail) {
+          await sendPasswordResetEmail(auth, inputVal);
+          setResetSuccess("A secure reset link has been sent to your email. Check your inbox to complete the credentials reset.");
+        } else {
+          // Retrieve user by registered phone number
+          const qUsers = query(collection(db, "users"), where("phone", "==", inputVal));
+          const snap = await getDocs(qUsers);
+          if (snap.empty) {
+            setAuthError("No customer profile located with this registered phone number. Please verify and try again.");
+            setIsSubmitting(false);
+            return;
+          }
+          let matchedUser: any = null;
+          snap.forEach((docSnap) => {
+            matchedUser = docSnap.data();
+          });
+          if (matchedUser && matchedUser.email) {
+            await sendPasswordResetEmail(auth, matchedUser.email);
+            const emailParts = matchedUser.email.split("@");
+            const maskedEmail = emailParts[0].substring(0, 2) + "***@" + emailParts[1];
+            setResetSuccess(`Account located! A password reset link has been sent to your registered email address: ${maskedEmail}.`);
+          } else {
+            setAuthError("Failed to resolve email associated with this phone number.");
+          }
+        }
       } else if (authModal === "login") {
-        const success = await login(authEmail, authPassword);
-        if (success) {
+        const res = await login(authEmail, authPassword);
+        if (res.success) {
           if (rememberMe) {
             localStorage.setItem("remembered_email", authEmail);
           } else {
@@ -157,11 +186,16 @@ function MainAppContent() {
           // Redirect to appropriate dashboard/portal
           setTab("dashboard");
         } else {
-          setAuthError("Invalid email or password. Please verify credentials.");
+          setAuthError(res.error || "Invalid email or password. Please verify credentials.");
         }
       } else {
         if (!authName.trim()) {
           setAuthError("Name field is required.");
+          setIsSubmitting(false);
+          return;
+        }
+        if (!authPhone.trim() || authPhone.trim().length < 8) {
+          setAuthError("A valid phone number (at least 8 digits) is required.");
           setIsSubmitting(false);
           return;
         }
@@ -170,12 +204,12 @@ function MainAppContent() {
           setIsSubmitting(false);
           return;
         }
-        const success = await register(authEmail, authPassword, authName);
-        if (success) {
+        const res = await register(authName.trim(), authEmail.trim(), authPassword, authPhone.trim());
+        if (res.success) {
           setAuthModal(null);
           setTab("dashboard");
         } else {
-          setAuthError("Registration failed. Email may already exist.");
+          setAuthError(res.error || "Registration failed. Email may already exist.");
         }
       }
     } catch (err: any) {
@@ -394,24 +428,71 @@ function MainAppContent() {
                     </div>
                   )}
 
+                  {authModal === "register" && (
+                    <div>
+                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">Phone Number *</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
+                        <input
+                          type="tel"
+                          required
+                          value={authPhone}
+                          onChange={(e) => setAuthPhone(e.target.value)}
+                          onFocus={() => setFocusedField("phone")}
+                          onBlur={() => setFocusedField(null)}
+                          className="w-full pl-11 pr-10 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm transition-all focus:outline-none focus:bg-white focus:ring-4 focus:ring-emerald-950/10 focus:border-emerald-900"
+                          placeholder="e.g. +265 888 12 34 56"
+                        />
+                        {authPhone.length > 0 && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                            {authPhone.trim().length >= 8 ? (
+                              <Check className="w-4 h-4 text-emerald-500" />
+                            ) : (
+                              <X className="w-4 h-4 text-rose-500" />
+                            )}
+                          </div>
+                        )}
+                        <AnimatePresence>
+                          {focusedField === "phone" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                              className="absolute bottom-full left-0 mb-3 w-full z-10 bg-slate-900 text-white text-2xs sm:text-xs rounded-xl p-3 shadow-xl border border-slate-800 flex items-start gap-2.5"
+                            >
+                              <Info className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                              <div className="space-y-0.5 text-left">
+                                <p className="font-bold text-white text-xs">Phone Number Expectation</p>
+                                <p className="text-slate-300 leading-normal">Enter your active mobile number (at least 8 digits). This enables password recovery support and delivery updates.</p>
+                              </div>
+                              <div className="absolute top-full left-6 w-3 h-3 bg-slate-900 border-r border-b border-slate-800 rotate-45 -translate-y-[6px]" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  )}
+
                   <div>
-                    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">Email Address *</label>
+                    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
+                      {authModal === "forgot" ? "Email Address or Phone Number *" : "Email Address *"}
+                    </label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
                       <input
                         ref={emailInputRef}
-                        type="email"
+                        type="text"
                         required
                         value={authEmail}
                         onChange={(e) => setAuthEmail(e.target.value)}
                         onFocus={() => setFocusedField("email")}
                         onBlur={() => setFocusedField(null)}
                         className="w-full pl-11 pr-10 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm transition-all focus:outline-none focus:bg-white focus:ring-4 focus:ring-emerald-950/10 focus:border-emerald-900"
-                        placeholder="buyer@example.com"
+                        placeholder={authModal === "forgot" ? "buyer@example.com or phone number" : "buyer@example.com"}
                       />
                       {authEmail.length > 0 && (
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                          {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail) ? (
+                          {(authModal === "forgot" ? (authEmail.trim().length >= 8) : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)) ? (
                             <Check className="w-4 h-4 text-emerald-500" />
                           ) : (
                             <X className="w-4 h-4 text-rose-500" />
@@ -428,8 +509,14 @@ function MainAppContent() {
                           >
                             <Info className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                             <div className="space-y-0.5 text-left">
-                              <p className="font-bold text-white text-xs">Email Address Expectation</p>
-                              <p className="text-slate-300 leading-normal">Enter a valid email (e.g. user@domain.com). This will be used for secure logins and quote status notifications.</p>
+                              <p className="font-bold text-white text-xs">
+                                {authModal === "forgot" ? "Recovery Identifier" : "Email Address Expectation"}
+                              </p>
+                              <p className="text-slate-300 leading-normal">
+                                {authModal === "forgot"
+                                  ? "Enter either your registered email address or your registered phone number to identify and restore your customer profile."
+                                  : "Enter a valid email (e.g. user@domain.com). This will be used for secure logins and quote status notifications."}
+                              </p>
                             </div>
                             <div className="absolute top-full left-6 w-3 h-3 bg-slate-900 border-r border-b border-slate-800 rotate-45 -translate-y-[6px]" />
                           </motion.div>

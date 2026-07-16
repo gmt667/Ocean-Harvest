@@ -84,6 +84,32 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
   // FAQ Expand state
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
 
+  // Hero Background Slideshow State
+  const [currentHeroImageIndex, setCurrentHeroImageIndex] = useState(0);
+
+  const heroImages = [
+    "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=1200&auto=format&fit=crop&q=80", // Malawian field / agriculture
+    "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1200&auto=format&fit=crop&q=80", // Premium Stone-Free Rice
+    "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?w=1200&auto=format&fit=crop&q=80", // Maize
+    "https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=1200&auto=format&fit=crop&q=80", // Beans
+    "https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=1200&auto=format&fit=crop&q=80"  // Quails/eggs/farm fresh
+  ];
+
+  const imageCaptions = [
+    { label: "Premium Sourcing", title: "Ocean's Harvest", description: "Sustaining Malawian families with top tier farm crops since 2019." },
+    { label: "Grains & Cereals", title: "Stone-Free Rice", description: "Carefully processed and bagged ready-to-cook premium white rice." },
+    { label: "Essential Grains", title: "Malawian Maize", description: "Bulk supply of premium white maize for households & institutions." },
+    { label: "Legumes & Beans", title: "Nutritious Beans", description: "Kamtauzeni, Nanyati, Kayera, and Red Kidney beans." },
+    { label: "Livestock & Poultry", title: "Quails & Chicken Eggs", description: "Farm-fresh high protein eggs and healthy Zinziri (quails)." }
+  ];
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentHeroImageIndex((prev) => (prev + 1) % 5);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
+
   // -------------------------------------------------------------
   // CONTACT FORM SUBMISSION
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -138,54 +164,106 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
             </div>
 
             {/* Hero Section */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-amber-50/50 py-24 sm:py-32 border-b border-gray-100">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <section className="relative overflow-hidden py-24 sm:py-32 border-b border-gray-100 min-h-[550px] flex items-center">
+              {/* Background Slideshow */}
+              <div className="absolute inset-0 z-0">
+                <AnimatePresence mode="popLayout">
+                  <motion.div
+                    key={currentHeroImageIndex}
+                    initial={{ opacity: 0, scale: 1.05 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 1.2, ease: "easeInOut" }}
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${heroImages[currentHeroImageIndex]})` }}
+                  />
+                </AnimatePresence>
+                {/* Semi-transparent dark overlay for high text contrast */}
+                <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px]" />
+                {/* Overlay vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/30" />
+              </div>
+
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
                 <div className="space-y-6 text-left">
                   <span
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                    style={{ backgroundColor: primaryColor + "15", color: primaryColor }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white backdrop-blur-md border border-white/20"
                   >
-                    <CheckCircle className="w-3.5 h-3.5" /> Est. 2019 | Malawi Sourced Grains
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" /> Est. 2019 | Malawi Sourced Grains
                   </span>
-                  <h1 className="text-4xl sm:text-6xl font-black text-gray-900 tracking-tight leading-tight">
+                  <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight">
                     {settings?.heroTitle || "Sustaining Malawi with Premium Agricultural & Food Commodities"}
                   </h1>
-                  <p className="text-base sm:text-lg text-gray-600 leading-relaxed max-w-xl">
+                  <p className="text-base sm:text-lg text-slate-200 leading-relaxed max-w-xl">
                     {settings?.heroSubtitle || "Providing fresh, reliable, and high-quality grains, beans, livestock, and general supplies across the nation."}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 pt-4">
                     <button
                       onClick={() => setTab("products")}
-                      className="px-8 py-4 rounded-xl text-sm font-bold text-white shadow-lg shadow-green-700/20 hover:shadow-xl transition-all flex items-center justify-center space-x-2"
-                      style={{ backgroundColor: primaryColor }}
+                      className="px-8 py-4 rounded-xl text-sm font-bold text-white shadow-lg shadow-black/35 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-2"
+                      style={{ backgroundColor: secondaryColor }}
                     >
                       <ShoppingBag className="w-4 h-4" />
                       <span>Browse Products</span>
                     </button>
                     <button
                       onClick={() => setTab("contact")}
-                      className="px-8 py-4 rounded-xl text-sm font-bold text-gray-800 bg-white border border-gray-200 hover:bg-gray-50 transition-all flex items-center justify-center space-x-2"
+                      className="px-8 py-4 rounded-xl text-sm font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-2 backdrop-blur-md"
                     >
                       <span>Inquire Bulk Prices</span>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
+                      <ArrowRight className="w-4 h-4 text-green-300" />
                     </button>
                   </div>
                 </div>
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-green-100 to-amber-100 rounded-3xl filter blur-2xl opacity-60 transform rotate-6 scale-95" />
-                  <img
-                    src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800&auto=format&fit=crop&q=80"
-                    alt="Malawian Farming Harvest"
-                    className="rounded-3xl shadow-2xl relative z-10 w-full object-cover h-[450px]"
-                  />
+
+                <div className="relative hidden lg:block">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-amber-500/20 rounded-3xl filter blur-2xl opacity-60 transform rotate-6 scale-95" />
+                  <div className="relative overflow-hidden rounded-3xl shadow-2xl h-[450px] border border-white/10 bg-slate-900">
+                    <AnimatePresence mode="popLayout">
+                      <motion.img
+                        key={currentHeroImageIndex}
+                        src={heroImages[currentHeroImageIndex]}
+                        alt={imageCaptions[currentHeroImageIndex].title}
+                        initial={{ opacity: 0, x: 50, scale: 1.05 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -50, scale: 0.95 }}
+                        transition={{ duration: 0.8, ease: "easeInOut" }}
+                        className="w-full h-full object-cover"
+                      />
+                    </AnimatePresence>
+                    {/* Dark gradient overlay inside image box */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    {/* Floating caption over image */}
+                    <div className="absolute bottom-6 left-6 right-6 text-left text-white z-20">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full text-4xs font-extrabold uppercase tracking-widest bg-amber-400 text-slate-950 mb-2">
+                        {imageCaptions[currentHeroImageIndex].label}
+                      </span>
+                      <h3 className="text-xl font-black text-white">{imageCaptions[currentHeroImageIndex].title}</h3>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">{imageCaptions[currentHeroImageIndex].description}</p>
+                    </div>
+
+                    {/* Simple dots indicator */}
+                    <div className="absolute top-6 right-6 flex space-x-1.5 z-20">
+                      {heroImages.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCurrentHeroImageIndex(idx)}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            idx === currentHeroImageIndex ? "bg-white w-4" : "bg-white/40"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Floating Metric Card */}
-                  <div className="absolute -bottom-6 -left-6 bg-white p-5 rounded-2xl shadow-xl z-20 flex items-center space-x-4 border border-gray-50 max-w-xs">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold" style={{ backgroundColor: secondaryColor }}>
+                  <div className="absolute -bottom-6 -left-6 bg-slate-950/90 text-white p-5 rounded-2xl shadow-xl z-20 flex items-center space-x-4 border border-white/10 max-w-xs backdrop-blur-md">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-slate-950 font-black" style={{ backgroundColor: secondaryColor }}>
                       99%
                     </div>
                     <div className="text-left">
-                      <p className="text-xs font-black text-gray-800">Stone-Free Grains</p>
-                      <p className="text-3xs text-gray-400 leading-relaxed">Our advanced de-stoning process guarantees pure ready-to-cook rice.</p>
+                      <p className="text-xs font-black text-white">Stone-Free Grains</p>
+                      <p className="text-3xs text-slate-400 leading-relaxed">Our advanced de-stoning process guarantees pure ready-to-cook rice.</p>
                     </div>
                   </div>
                 </div>

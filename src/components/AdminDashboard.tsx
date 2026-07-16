@@ -103,7 +103,7 @@ export const AdminDashboard: React.FC = () => {
   // Form Fields
   const [productForm, setProductForm] = useState({ name: "", description: "", category: "", imageUrl: "", priceMwk: 0, stockLevel: 0, unit: "5kg Bag", isFeatured: false });
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
-  const [userForm, setUserForm] = useState({ name: "", email: "", role: UserRole.STAFF, status: UserStatus.ACTIVE, mustChangePassword: true, passwordPlain: "" });
+  const [userForm, setUserForm] = useState({ name: "", email: "", phone: "", role: UserRole.STAFF, status: UserStatus.ACTIVE, mustChangePassword: true, passwordPlain: "" });
   const [txnForm, setTxnForm] = useState({ productId: "", type: InventoryTransactionType.STOCK_IN, quantity: 1, reason: "Manual Adjustment" });
   const [quoteFormPrice, setQuoteFormPrice] = useState(0);
   const [cmsForm, setCmsForm] = useState<any>({});
@@ -184,7 +184,8 @@ export const AdminDashboard: React.FC = () => {
       await adminUpdateUser(showUserModal.uid, {
         name: userForm.name,
         role: userForm.role,
-        status: userForm.status
+        status: userForm.status,
+        phone: userForm.phone
       });
     }
     setShowUserModal(null);
@@ -944,7 +945,7 @@ export const AdminDashboard: React.FC = () => {
                 {isSuperAdmin && (
                   <button
                     onClick={() => {
-                      setUserForm({ name: "", email: "", role: UserRole.STAFF, status: UserStatus.ACTIVE, mustChangePassword: true, passwordPlain: "" });
+                      setUserForm({ name: "", email: "", phone: "", role: UserRole.STAFF, status: UserStatus.ACTIVE, mustChangePassword: true, passwordPlain: "" });
                       setShowUserModal("add");
                     }}
                     className="px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white text-xs font-bold rounded-xl flex items-center space-x-1"
@@ -963,6 +964,7 @@ export const AdminDashboard: React.FC = () => {
                     <tr>
                       <th className="px-6 py-4">Name</th>
                       <th className="px-6 py-4">Email</th>
+                      <th className="px-6 py-4">Phone</th>
                       <th className="px-6 py-4">Role</th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-right">Actions</th>
@@ -973,6 +975,7 @@ export const AdminDashboard: React.FC = () => {
                       <tr key={u.uid}>
                         <td className="px-6 py-4 font-bold text-gray-800">{u.name}</td>
                         <td className="px-6 py-4 text-gray-500">{u.email}</td>
+                        <td className="px-6 py-4 text-gray-500">{u.phone || "—"}</td>
                         <td className="px-6 py-4">
                           <span
                             className="px-2.5 py-0.5 rounded-full text-3xs font-extrabold tracking-wider uppercase"
@@ -1843,6 +1846,17 @@ export const AdminDashboard: React.FC = () => {
                     value={userForm.email}
                     onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                     className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-3xs font-extrabold text-gray-400 uppercase mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    required
+                    value={userForm.phone}
+                    onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })}
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs"
+                    placeholder="e.g. +265 888 12 34 56"
                   />
                 </div>
                 {showUserModal === "add" && (

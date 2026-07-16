@@ -77,9 +77,9 @@ interface AppContextType {
   loginWithFacebook: () => Promise<{ success: boolean; error?: string; user?: User }>;
   loginWithApple: () => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => Promise<void>;
-  register: (name: string, email: string, passwordPlain: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, passwordPlain: string, phone: string) => Promise<{ success: boolean; error?: string }>;
   changePassword: (newPasswordPlain: string) => Promise<void>;
-  updateUserProfile: (uid: string, name: string, email: string) => Promise<void>;
+  updateUserProfile: (uid: string, name: string, email: string, phone?: string) => Promise<void>;
   fbAuthUser: FirebaseUser | null;
   reloadAuthUser: () => Promise<boolean>;
   resendVerificationEmail: () => Promise<void>;
@@ -750,14 +750,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // REGISTER CUSTOMER WITH FIREBASE AUTH & EMAIL VERIFICATION
-  const register = async (name: string, email: string, passwordPlain: string) => {
+  const register = async (name: string, email: string, passwordPlain: string, phone: string) => {
     try {
       const emailLower = email.toLowerCase();
-      // Check duplicate in Firestore
+      // Check duplicate in Firestore by email
       const qDup = query(collection(db, "users"), where("email", "==", emailLower));
       const dupSnap = await getDocs(qDup);
       if (!dupSnap.empty) {
         return { success: false, error: "Email address already registered." };
+      }
+
+      // Check duplicate in Firestore by phone
+      if (phone) {
+        const qDupPhone = query(collection(db, "users"), where("phone", "==", phone));
+        const dupPhoneSnap = await getDocs(qDupPhone);
+        if (!dupPhoneSnap.empty) {
+          return { success: false, error: "Phone number already registered." };
+        }
       }
 
       // Create user in Firebase Auth
@@ -774,6 +783,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         email: emailLower,
         passwordHash: passHash,
         name,
+        phone,
         role: UserRole.CUSTOMER,
         status: UserStatus.ACTIVE,
         mustChangePassword: false,
@@ -787,7 +797,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await setDoc(doc(db, "notifications", notifId), {
         id: notifId,
         title: "New Customer Registration",
-        message: `${name} (${emailLower}) has registered as a customer. Verification email sent.`,
+        message: `${name} (${emailLower}, ${phone}) has registered as a customer. Verification email sent.`,
         type: "user",
         isRead: false,
         createdAt: new Date().toISOString()
@@ -852,13 +862,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // UPDATE USER PROFILE
-  const updateUserProfile = async (uid: string, name: string, email: string) => {
+  const updateUserProfile = async (uid: string, name: string, email: string, phone?: string) => {
     try {
       const userRef = doc(db, "users", uid);
       const emailLower = email.toLowerCase();
-      await updateDoc(userRef, { name, email: emailLower });
+      const updates: any = { name, email: emailLower };
+      if (phone !== undefined) {
+        updates.phone = phone;
+      }
+      await updateDoc(userRef, updates);
       if (currentUser && currentUser.uid === uid) {
         const updated = { ...currentUser, name, email: emailLower };
+        if (phone !== undefined) {
+          updated.phone = phone;
+        }
         setCurrentUser(updated);
         localStorage.setItem("ocean_harvest_user", JSON.stringify(updated));
       }

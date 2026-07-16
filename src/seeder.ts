@@ -63,153 +63,154 @@ export async function runSeeder() {
     // 3. Seed CATEGORIES
     const categoriesCol = collection(db, "categories");
     const categoriesSnap = await getDocs(categoriesCol);
-    let seededCategories: Category[] = [];
-    if (categoriesSnap.empty) {
-      seededCategories = [
-        { id: "cat_grains", name: "Grains & Cereals", description: "Freshly harvested maize, rice, and key crops." },
-        { id: "cat_beans", name: "Legumes & Beans", description: "Nutritious selection of dry beans and pulses." },
-        { id: "cat_livestock", name: "Livestock & Poultry", description: "Healthy quails, chickens, and fresh farm eggs." },
-        { id: "cat_sauces", name: "Sauces & Condiments", description: "Premium homemade style chili and garlic sauces." },
-        { id: "cat_general", name: "General Supplies", description: "Various general trading and farm supplies." }
-      ];
-      for (const cat of seededCategories) {
+    const seededCategories: Category[] = [
+      { id: "cat_grains", name: "Grains & Cereals", description: "Freshly harvested maize, rice, and key crops." },
+      { id: "cat_beans", name: "Legumes & Beans", description: "Nutritious selection of dry beans and pulses." },
+      { id: "cat_livestock", name: "Livestock & Poultry", description: "Healthy quails, chickens, and fresh farm eggs." },
+      { id: "cat_sauces", name: "Sauces & Condiments", description: "Premium homemade style chili and garlic sauces." },
+      { id: "cat_general", name: "General Supplies", description: "Various general trading and farm supplies." }
+    ];
+    const existingCatIds = new Set(categoriesSnap.docs.map(d => d.id));
+    for (const cat of seededCategories) {
+      if (!existingCatIds.has(cat.id)) {
         await setDoc(doc(db, "categories", cat.id), cat);
       }
-      console.log("Seeded categories.");
     }
+    console.log("Categories seeding check complete.");
 
     // 4. Seed PRODUCTS
     const productsCol = collection(db, "products");
     const productsSnap = await getDocs(productsCol);
-    if (productsSnap.empty) {
-      const defaultProducts: Product[] = [
-        {
-          id: "prod_rice",
-          name: "Premium Stone-Free Rice",
-          description: "Clean, premium-quality rice carefully processed for households, retailers, wholesalers, hotels, and institutions.",
-          category: "Grains & Cereals",
-          imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 12000,
-          stockLevel: 150,
-          unit: "5kg Bag",
-          isFeatured: true
-        },
-        {
-          id: "prod_kamtauzeni",
-          name: "Kamtauzeni Beans",
-          description: "Nutritious and delicious beans suitable for everyday meals.",
-          category: "Legumes & Beans",
-          imageUrl: "https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 8500,
-          stockLevel: 220,
-          unit: "5kg Bag",
-          isFeatured: true
-        },
-        {
-          id: "prod_nanyati",
-          name: "Nanyati Beans",
-          description: "High-quality beans sourced from trusted suppliers.",
-          category: "Legumes & Beans",
-          imageUrl: "https://images.unsplash.com/photo-1614747761005-728b788e001f?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 9000,
-          stockLevel: 180,
-          unit: "5kg Bag",
-          isFeatured: false
-        },
-        {
-          id: "prod_kayera",
-          name: "Kayera Beans",
-          description: "Fresh and carefully selected beans for superior quality.",
-          category: "Legumes & Beans",
-          imageUrl: "https://images.unsplash.com/photo-1563865436874-9aef32095ffd?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 8000,
-          stockLevel: 110,
-          unit: "5kg Bag",
-          isFeatured: false
-        },
-        {
-          id: "prod_mixed_beans",
-          name: "Mixed Beans",
-          description: "A nutritious blend of different bean varieties.",
-          category: "Legumes & Beans",
-          imageUrl: "https://images.unsplash.com/photo-1547058886-af77d0fbe8e1?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 7500,
-          stockLevel: 95,
-          unit: "5kg Bag",
-          isFeatured: false
-        },
-        {
-          id: "prod_kidney_beans",
-          name: "Red Kidney Beans",
-          description: "Rich in protein and ideal for healthy diets.",
-          category: "Legumes & Beans",
-          imageUrl: "https://images.unsplash.com/photo-1582281298055-e25b84a30b44?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 9500,
-          stockLevel: 4, // Trigger low stock alert (limit < 10)
-          unit: "5kg Bag",
-          isFeatured: true
-        },
-        {
-          id: "prod_maize",
-          name: "Maize",
-          description: "Quality maize supplied to homes, schools, institutions, and businesses.",
-          category: "Grains & Cereals",
-          imageUrl: "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 15000,
-          stockLevel: 500,
-          unit: "50kg Bag",
-          isFeatured: true
-        },
-        {
-          id: "prod_groundnuts",
-          name: "Groundnuts",
-          description: "Fresh, clean, and carefully selected groundnuts.",
-          category: "Legumes & Beans",
-          imageUrl: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 5000,
-          stockLevel: 300,
-          unit: "2kg Bag",
-          isFeatured: false
-        },
-        {
-          id: "prod_quails",
-          name: "Zinziri (Quails)",
-          description: "Healthy and professionally raised quails.",
-          category: "Livestock & Poultry",
-          imageUrl: "https://images.unsplash.com/photo-1594142404563-64cccaf5a117?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 1500,
-          stockLevel: 120,
-          unit: "Per Bird",
-          isFeatured: true
-        },
-        {
-          id: "prod_eggs",
-          name: "Chicken Eggs",
-          description: "Fresh farm eggs supplied consistently.",
-          category: "Livestock & Poultry",
-          imageUrl: "https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 4500,
-          stockLevel: 80,
-          unit: "Tray of 30",
-          isFeatured: true
-        },
-        {
-          id: "prod_chilli_sauce",
-          name: "Garlic Chilli Sauce",
-          description: "Premium garlic chilli sauce made from quality ingredients.",
-          category: "Sauces & Condiments",
-          imageUrl: "https://images.unsplash.com/photo-1614030424754-24d1f97a54a9?w=600&auto=format&fit=crop&q=80",
-          priceMwk: 2500,
-          stockLevel: 150,
-          unit: "500ml Bottle",
-          isFeatured: true
-        }
-      ];
-      for (const prod of defaultProducts) {
+    const existingProdIds = new Set(productsSnap.docs.map(d => d.id));
+    const defaultProducts: Product[] = [
+      {
+        id: "prod_rice",
+        name: "Premium Stone-Free Rice",
+        description: "Clean, premium-quality rice carefully processed for households, retailers, wholesalers, hotels, and institutions.",
+        category: "Grains & Cereals",
+        imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 12000,
+        stockLevel: 150,
+        unit: "5kg Bag",
+        isFeatured: true
+      },
+      {
+        id: "prod_kamtauzeni",
+        name: "Kamtauzeni Beans",
+        description: "Nutritious and delicious beans suitable for everyday meals.",
+        category: "Legumes & Beans",
+        imageUrl: "https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 8500,
+        stockLevel: 220,
+        unit: "5kg Bag",
+        isFeatured: true
+      },
+      {
+        id: "prod_nanyati",
+        name: "Nanyati Beans",
+        description: "High-quality beans sourced from trusted suppliers.",
+        category: "Legumes & Beans",
+        imageUrl: "https://images.unsplash.com/photo-1614747761005-728b788e001f?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 9000,
+        stockLevel: 180,
+        unit: "5kg Bag",
+        isFeatured: false
+      },
+      {
+        id: "prod_kayera",
+        name: "Kayera Beans",
+        description: "Fresh and carefully selected beans for superior quality.",
+        category: "Legumes & Beans",
+        imageUrl: "https://images.unsplash.com/photo-1563865436874-9aef32095ffd?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 8000,
+        stockLevel: 110,
+        unit: "5kg Bag",
+        isFeatured: false
+      },
+      {
+        id: "prod_mixed_beans",
+        name: "Mixed Beans",
+        description: "A nutritious blend of different bean varieties.",
+        category: "Legumes & Beans",
+        imageUrl: "https://images.unsplash.com/photo-1547058886-af77d0fbe8e1?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 7500,
+        stockLevel: 95,
+        unit: "5kg Bag",
+        isFeatured: false
+      },
+      {
+        id: "prod_kidney_beans",
+        name: "Red Kidney Beans",
+        description: "Rich in protein and ideal for healthy diets.",
+        category: "Legumes & Beans",
+        imageUrl: "https://images.unsplash.com/photo-1582281298055-e25b84a30b44?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 9500,
+        stockLevel: 4, // Trigger low stock alert (limit < 10)
+        unit: "5kg Bag",
+        isFeatured: true
+      },
+      {
+        id: "prod_maize",
+        name: "Maize",
+        description: "Quality maize supplied to homes, schools, institutions, and businesses.",
+        category: "Grains & Cereals",
+        imageUrl: "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 15000,
+        stockLevel: 500,
+        unit: "50kg Bag",
+        isFeatured: true
+      },
+      {
+        id: "prod_groundnuts",
+        name: "Groundnuts",
+        description: "Fresh, clean, and carefully selected groundnuts.",
+        category: "Legumes & Beans",
+        imageUrl: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 5000,
+        stockLevel: 300,
+        unit: "2kg Bag",
+        isFeatured: false
+      },
+      {
+        id: "prod_quails",
+        name: "Zinziri (Quails)",
+        description: "Healthy and professionally raised quails.",
+        category: "Livestock & Poultry",
+        imageUrl: "https://images.unsplash.com/photo-1594142404563-64cccaf5a117?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 1500,
+        stockLevel: 120,
+        unit: "Per Bird",
+        isFeatured: true
+      },
+      {
+        id: "prod_eggs",
+        name: "Chicken Eggs",
+        description: "Fresh farm eggs supplied consistently.",
+        category: "Livestock & Poultry",
+        imageUrl: "https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 4500,
+        stockLevel: 80,
+        unit: "Tray of 30",
+        isFeatured: true
+      },
+      {
+        id: "prod_chilli_sauce",
+        name: "Garlic Chilli Sauce",
+        description: "Premium garlic chilli sauce made from quality ingredients.",
+        category: "Sauces & Condiments",
+        imageUrl: "https://images.unsplash.com/photo-1614030424754-24d1f97a54a9?w=600&auto=format&fit=crop&q=80",
+        priceMwk: 2500,
+        stockLevel: 150,
+        unit: "500ml Bottle",
+        isFeatured: true
+      }
+    ];
+    for (const prod of defaultProducts) {
+      if (!existingProdIds.has(prod.id)) {
         await setDoc(doc(db, "products", prod.id), prod);
       }
-      console.log("Seeded products.");
     }
+    console.log("Products seeding check complete.");
 
     // 5. Seed SERVICES
     const servicesCol = collection(db, "services");

@@ -51,6 +51,7 @@ export const CustomerPortal: React.FC = () => {
   // Profile Form State
   const [name, setName] = useState(currentUser?.name || "");
   const [email, setEmail] = useState(currentUser?.email || "");
+  const [phone, setPhone] = useState(currentUser?.phone || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [profileSuccess, setProfileSuccess] = useState(false);
@@ -138,7 +139,7 @@ export const CustomerPortal: React.FC = () => {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
-    await updateUserProfile(currentUser.uid, name, email);
+    await updateUserProfile(currentUser.uid, name, email, phone);
     setProfileSuccess(true);
     setTimeout(() => setProfileSuccess(false), 4000);
   };
@@ -559,7 +560,7 @@ export const CustomerPortal: React.FC = () => {
               {/* Personal Info */}
               <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-lg">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Personal Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-3xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
                     <input
@@ -578,6 +579,17 @@ export const CustomerPortal: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-3xs font-bold text-gray-500 uppercase mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-green-500"
+                      placeholder="+265..."
                     />
                   </div>
                 </div>
