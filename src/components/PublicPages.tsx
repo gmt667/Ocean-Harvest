@@ -23,7 +23,15 @@ import {
   ShoppingBag,
   Handshake,
   Clock,
-  ThumbsUp
+  ThumbsUp,
+  MessageCircle,
+  Printer,
+  Download,
+  Tag,
+  Sparkles,
+  Map,
+  Percent,
+  Briefcase
 } from "lucide-react";
 
 interface PublicPagesProps {
@@ -59,9 +67,15 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
   const [quoteNotes, setQuoteNotes] = useState("");
   const [quoteSuccess, setQuoteSuccess] = useState(false);
 
+  // Delivery State
+  const [selectedZone, setSelectedZone] = useState(0);
+
   // Gallery State
   const [galleryFilter, setGalleryFilter] = useState("all");
   const [lightboxImage, setLightboxImage] = useState<any>(null);
+
+  // Print Catalogue State
+  const [showPrintCatalogue, setShowPrintCatalogue] = useState(false);
 
   // Contact Us State
   const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
@@ -112,6 +126,17 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
       case "home":
         return (
           <div className="space-y-20 pb-20">
+            {/* Promotions and Seasonal Offers Banner */}
+            <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-green-600 text-white py-3 px-4 sm:px-6 lg:px-8 text-center text-xs font-black tracking-wide flex items-center justify-center gap-2 shadow-inner">
+              <span className="bg-white/25 px-2 py-0.5 rounded-full text-3xs font-extrabold flex items-center gap-1 uppercase">
+                <Percent className="w-3.5 h-3.5" /> Special Offer
+              </span>
+              <span>Harvest Season Discount: Enjoy 10% off bulk Kamtauzeni Beans and Premium Stone-Free Rice ordered this month!</span>
+              <button onClick={() => setTab("products")} className="underline hover:text-green-50 transition-colors ml-2 font-black flex items-center gap-1">
+                Shop Now <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
             {/* Hero Section */}
             <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-amber-50/50 py-24 sm:py-32 border-b border-gray-100">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -120,7 +145,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
                     style={{ backgroundColor: primaryColor + "15", color: primaryColor }}
                   >
-                    <CheckCircle className="w-3.5 h-3.5" /> Est. 2023 | Malawi Sourced Grains
+                    <CheckCircle className="w-3.5 h-3.5" /> Est. 2019 | Malawi Sourced Grains
                   </span>
                   <h1 className="text-4xl sm:text-6xl font-black text-gray-900 tracking-tight leading-tight">
                     {settings?.heroTitle || "Sustaining Malawi with Premium Agricultural & Food Commodities"}
@@ -257,6 +282,165 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                       <p className="text-xs text-gray-500 leading-relaxed">{card.desc}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Interactive Delivery Coverage Map Section */}
+            <section className="bg-white py-16 border-b border-gray-100">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                <div className="text-center max-w-2xl mx-auto space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: secondaryColor }}>Lilongwe Dispatch Network</span>
+                  <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Delivery Coverage & Zones</h2>
+                  <p className="text-sm text-gray-500">We operate a rapid distribution network with real-time tracking across Lilongwe's major suburbs and beyond.</p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+                  {/* Zone Selector and Info */}
+                  <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-bold text-gray-900">Select a Delivery Zone</h3>
+                      <p className="text-xs text-gray-500">Select your area to view estimated delivery speeds, flat-rate logistics fees, and dispatch schedules.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        { name: "Lilongwe (Central)", minTime: "30 mins", rate: "MWK 1,500", desc: "All core commerce areas in the capital city.", details: "Includes corporate locations, Area 2, 3, 4, and Central Market bulk drop-offs.", color: "#15803d" },
+                        { name: "Area 47", minTime: "45 mins", rate: "MWK 2,500", desc: "Residential and commercial blocks of Sectors 1-5.", details: "Doorstep delivery with scheduled daily morning and afternoon dispatch runs.", color: "#3b82f6" },
+                        { name: "Area 43", minTime: "1 hour", rate: "MWK 3,000", desc: "VVIP residential estates and diplomatic compounds.", details: "Double-checked and hand-packed cargo with premium safety logistics seal.", color: "#ca8a04" },
+                        { name: "Area 44", minTime: "1 hour", rate: "MWK 3,000", desc: "Elite residential developments & high-end clusters.", details: "Direct premium courier service from the central warehouse.", color: "#8b5cf6" },
+                        { name: "Area 49", minTime: "1.5 hours", rate: "MWK 2,500", desc: "Sectors 1 to 5 residential communities.", details: "Reliable deliveries twice daily to all major residential complexes.", color: "#ec4899" },
+                        { name: "Surrounding & Beyond", minTime: "Same Day / Next Day", rate: "Quote-based", desc: "All neighboring districts & nationwide bulk commercial shipping.", details: "Serviced via our high-tonnage multi-axle truck fleet. Tailored to custom contracts.", color: "#f97316" }
+                      ].map((zone, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedZone(idx)}
+                          className={`p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between h-24 ${
+                            selectedZone === idx
+                              ? "bg-gray-900 text-white border-transparent shadow-md"
+                              : "bg-gray-50 text-gray-700 border-gray-100 hover:bg-gray-100"
+                          }`}
+                        >
+                          <span className="text-xs font-bold block">{zone.name}</span>
+                          <span className={`text-3xs font-extrabold px-2 py-0.5 rounded-full inline-block mt-2 w-max ${
+                            selectedZone === idx ? "bg-white/20 text-white" : "bg-gray-200/60 text-gray-600"
+                          }`}>
+                            {zone.minTime}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Selected Zone Card */}
+                    <motion.div
+                      key={selectedZone}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gray-50 border border-gray-100 p-6 rounded-3xl space-y-4 text-left"
+                    >
+                      {(() => {
+                        const activeDetails = [
+                          { name: "Lilongwe (Central)", minTime: "30 mins", rate: "MWK 1,500", desc: "All core commerce areas in the capital city.", details: "Includes corporate locations, Area 2, 3, 4, and Central Market bulk drop-offs.", color: "#15803d" },
+                          { name: "Area 47", minTime: "45 mins", rate: "MWK 2,500", desc: "Residential and commercial blocks of Sectors 1-5.", details: "Doorstep delivery with scheduled daily morning and afternoon dispatch runs.", color: "#3b82f6" },
+                          { name: "Area 43", minTime: "1 hour", rate: "MWK 3,000", desc: "VVIP residential estates and diplomatic compounds.", details: "Double-checked and hand-packed cargo with premium safety logistics seal.", color: "#ca8a04" },
+                          { name: "Area 44", minTime: "1 hour", rate: "MWK 3,000", desc: "Elite residential developments & high-end clusters.", details: "Direct premium courier service from the central warehouse.", color: "#8b5cf6" },
+                          { name: "Area 49", minTime: "1.5 hours", rate: "MWK 2,500", desc: "Sectors 1 to 5 residential communities.", details: "Reliable deliveries twice daily to all major residential complexes.", color: "#ec4899" },
+                          { name: "Surrounding & Beyond", minTime: "Same Day / Next Day", rate: "Quote-based", desc: "All neighboring districts & nationwide bulk commercial shipping.", details: "Serviced via our high-tonnage multi-axle truck fleet. Tailored to custom contracts.", color: "#f97316" }
+                        ][selectedZone];
+                        return (
+                          <>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: activeDetails.color }} />
+                              <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider">{activeDetails.name} Logistics</h4>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4 border-y border-gray-200/60 py-3.5 text-xs">
+                              <div>
+                                <p className="text-3xs text-gray-400 font-bold uppercase">Average Transit Time</p>
+                                <p className="text-sm font-extrabold text-gray-800 mt-0.5">{activeDetails.minTime}</p>
+                              </div>
+                              <div>
+                                <p className="text-3xs text-gray-400 font-bold uppercase">Logistics Fee Rate</p>
+                                <p className="text-sm font-extrabold text-gray-800 mt-0.5">{activeDetails.rate}</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <p className="text-xs text-gray-600 font-semibold leading-relaxed">{activeDetails.desc}</p>
+                              <p className="text-3xs text-gray-400 leading-normal">{activeDetails.details}</p>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </motion.div>
+                  </div>
+
+                  {/* Stylized Lilongwe SVG Map */}
+                  <div className="lg:col-span-7 bg-slate-900 p-6 sm:p-8 rounded-3xl relative overflow-hidden flex flex-col justify-between shadow-inner text-left border border-slate-800 min-h-[350px]">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
+                    <div className="relative z-10 flex justify-between items-center">
+                      <div>
+                        <span className="text-3xs font-extrabold text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                          Central Warehouse Hub
+                        </span>
+                        <h4 className="text-sm font-extrabold text-white mt-1">Capital Dispatch Network</h4>
+                      </div>
+                      <span className="text-3xs bg-slate-800/80 backdrop-blur-sm border border-slate-700 text-slate-300 px-3 py-1 rounded-full font-bold">
+                        Interactive Map
+                      </span>
+                    </div>
+
+                    {/* Network Nodes */}
+                    <div className="relative w-full h-64 flex items-center justify-center my-6">
+                      <svg viewBox="0 0 400 300" className="w-full h-full max-w-[450px]">
+                        {/* Connection lines */}
+                        <line x1="200" y1="150" x2="100" y2="80" stroke="#334155" strokeWidth="2" strokeDasharray="4 4" className={selectedZone === 1 ? "stroke-blue-400 stroke-2" : ""} />
+                        <line x1="200" y1="150" x2="300" y2="90" stroke="#334155" strokeWidth="2" strokeDasharray="4 4" className={selectedZone === 2 ? "stroke-yellow-400 stroke-2" : ""} />
+                        <line x1="200" y1="150" x2="280" y2="220" stroke="#334155" strokeWidth="2" strokeDasharray="4 4" className={selectedZone === 3 ? "stroke-purple-400 stroke-2" : ""} />
+                        <line x1="200" y1="150" x2="110" y2="210" stroke="#334155" strokeWidth="2" strokeDasharray="4 4" className={selectedZone === 4 ? "stroke-pink-400 stroke-2" : ""} />
+                        
+                        {/* Ripple circles for the central warehouse */}
+                        <circle cx="200" cy="150" r="16" fill="#059669" fillOpacity="0.2" className="animate-pulse" />
+                        <circle cx="200" cy="150" r="8" fill="#10b981" />
+                        
+                        {/* Central Hub text */}
+                        <text x="200" y="132" fill="#34d399" fontSize="10" fontWeight="bold" textAnchor="middle" className="font-sans">
+                          HQ Warehouse (Lilongwe)
+                        </text>
+
+                        {/* Zone 0: Lilongwe Central circle around HQ */}
+                        <circle cx="200" cy="150" r="45" stroke="#15803d" strokeWidth="1" strokeOpacity="0.3" fill="none" className={selectedZone === 0 ? "stroke-green-400 stroke-[1.5px]" : ""} />
+
+                        {/* Zone 1: Area 47 node */}
+                        <circle cx="100" cy="80" r={selectedZone === 1 ? 12 : 8} fill={selectedZone === 1 ? "#3b82f6" : "#475569"} className="transition-all duration-300 cursor-pointer" onClick={() => setSelectedZone(1)} />
+                        <text x="100" y="62" fill={selectedZone === 1 ? "#60a5fa" : "#94a3b8"} fontSize="9" textAnchor="middle">Area 47</text>
+
+                        {/* Zone 2: Area 43 node */}
+                        <circle cx="300" cy="90" r={selectedZone === 2 ? 12 : 8} fill={selectedZone === 2 ? "#eab308" : "#475569"} className="transition-all duration-300 cursor-pointer" onClick={() => setSelectedZone(2)} />
+                        <text x="300" y="72" fill={selectedZone === 2 ? "#facc15" : "#94a3b8"} fontSize="9" textAnchor="middle">Area 43</text>
+
+                        {/* Zone 3: Area 44 node */}
+                        <circle cx="280" cy="220" r={selectedZone === 3 ? 12 : 8} fill={selectedZone === 3 ? "#a78bfa" : "#475569"} className="transition-all duration-300 cursor-pointer" onClick={() => setSelectedZone(3)} />
+                        <text x="280" y="240" fill={selectedZone === 3 ? "#c084fc" : "#94a3b8"} fontSize="9" textAnchor="middle">Area 44</text>
+
+                        {/* Zone 4: Area 49 node */}
+                        <circle cx="110" cy="210" r={selectedZone === 4 ? 12 : 8} fill={selectedZone === 4 ? "#f472b6" : "#475569"} className="transition-all duration-300 cursor-pointer" onClick={() => setSelectedZone(4)} />
+                        <text x="110" y="230" fill={selectedZone === 4 ? "#fbcfe8" : "#94a3b8"} fontSize="9" textAnchor="middle">Area 49</text>
+
+                        {/* Beyond Region border dashed */}
+                        <rect x="25" y="25" width="350" height="250" rx="15" stroke="#f97316" strokeDasharray="5 5" strokeOpacity="0.15" fill="none" className={selectedZone === 5 ? "stroke-orange-400 stroke-opacity-40 stroke-[1.5px]" : ""} />
+                        <text x="360" y="280" fill={selectedZone === 5 ? "#fdba74" : "#64748b"} fontSize="8" textAnchor="end" fontWeight="bold">Nationwide Logistics Network (& Beyond)</text>
+                      </svg>
+                    </div>
+
+                    <div className="relative z-10 pt-4 border-t border-slate-800/80 flex items-center justify-between text-2xs text-slate-400">
+                      <p>Click on any node to explore delivery specs.</p>
+                      <button onClick={() => setTab("contact")} className="text-emerald-400 hover:underline font-bold flex items-center gap-1">
+                        Book Delivery <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -404,16 +588,25 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
 
             {/* Filter controls */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-gray-50 p-6 rounded-3xl border border-gray-100">
-              {/* Search */}
-              <div className="relative w-full md:w-80">
-                <Search className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-green-500"
-                />
+              {/* Search & Print actions */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-stretch sm:items-center">
+                <div className="relative w-full md:w-80">
+                  <Search className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-green-500"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowPrintCatalogue(true)}
+                  className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm"
+                >
+                  <Printer className="w-4.5 h-4.5 text-emerald-600" />
+                  <span>Printable Catalogue</span>
+                </button>
               </div>
 
               {/* Categories */}
@@ -485,11 +678,20 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                         <div className="flex gap-2">
                           <button
                             onClick={() => setActiveProduct(p)}
-                            className="flex-1 py-3.5 rounded-xl text-center text-xs font-bold text-white transition-all shadow-sm"
+                            className="flex-1 py-3 rounded-xl text-center text-xs font-bold text-white transition-all shadow-sm"
                             style={{ backgroundColor: primaryColor }}
                           >
-                            Request Quote
+                            Inquire
                           </button>
+                          <a
+                            href={`https://wa.me/265992145083?text=${encodeURIComponent(`Hello Ocean's Harvest! I would like to order or inquire about: ${p.name}.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 py-3 rounded-xl text-center text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-all flex items-center justify-center space-x-1.5 border border-emerald-200/50"
+                          >
+                            <MessageCircle className="w-4 h-4 text-emerald-600" />
+                            <span>WhatsApp</span>
+                          </a>
                         </div>
                       </div>
                     </div>
@@ -537,7 +739,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-widest" style={{ color: secondaryColor }}>Operational Transparency</span>
               <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Ocean Harvest Gallery</h1>
-              <p className="text-sm text-gray-500">Browse through our live stock, Limbe warehouses, transport fleets, and sorting lines. Click on any image to open a lightbox preview.</p>
+              <p className="text-sm text-gray-500">Browse through our live stock, Lilongwe warehouses, transport fleets, and sorting lines. Click on any image to open a lightbox preview.</p>
             </div>
 
             {/* Category tabs */}
@@ -595,7 +797,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-widest" style={{ color: secondaryColor }}>Ocean Announcements</span>
               <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">News & Farmer Bulletins</h1>
-              <p className="text-sm text-gray-500">Read our latest farming bulletins, bulk supply reports, and operational news directly from Limbe warehouse.</p>
+              <p className="text-sm text-gray-500">Read our latest farming bulletins, bulk supply reports, and operational news directly from Lilongwe warehouse.</p>
             </div>
 
             {newsItems.length === 0 ? (
@@ -634,7 +836,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
             <div className="text-center space-y-3">
               <span className="text-xs font-bold uppercase tracking-widest" style={{ color: secondaryColor }}>Instant Answers</span>
               <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Frequently Asked Questions</h1>
-              <p className="text-sm text-gray-500">Read about our sourcing operations, de-stoning mechanical sorting lines, and bulk delivery details in Blantyre and beyond.</p>
+              <p className="text-sm text-gray-500">Read about our sourcing operations, de-stoning mechanical sorting lines, and bulk delivery details in Lilongwe and beyond.</p>
             </div>
 
             <div className="space-y-4 text-left">
@@ -674,7 +876,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <span className="text-xs font-bold uppercase tracking-widest" style={{ color: secondaryColor }}>Get in Touch</span>
               <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Contact Ocean Dealers</h1>
-              <p className="text-sm text-gray-500">Submit a support ticket, request grain supply contracts, or call our Blantyre offices directly for prompt logistics dispatch.</p>
+              <p className="text-sm text-gray-500">Submit a support ticket, request grain supply contracts, or call our Lilongwe offices directly for prompt logistics dispatch.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
@@ -750,7 +952,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                   </button>
                   {contactSuccess && (
                     <div className="p-3 bg-green-50 text-green-800 text-xs rounded-xl font-semibold border border-green-200 text-center">
-                      ✓ Inquiry successfully sent! Our Blantyre staff will email or call you shortly.
+                      ✓ Inquiry successfully sent! Our Lilongwe staff will email or call you shortly.
                     </div>
                   )}
                 </form>
@@ -766,7 +968,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                       <div>
                         <p className="text-xs font-bold text-gray-900">Physical Warehouse Address</p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {settings?.address || "P.O. Box 3012, Limbe, Blantyre, Malawi"}
+                          {settings?.address || "P.O. Box X273, Lilongwe, Malawi"}
                         </p>
                       </div>
                     </div>
@@ -795,7 +997,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
 
                 <div className="p-8 rounded-3xl text-white flex flex-col justify-between h-48 shadow-md" style={{ backgroundColor: primaryColor }}>
                   <div className="space-y-1">
-                    <h4 className="font-extrabold text-sm uppercase tracking-wider text-green-200">Africa/Blantyre Time</h4>
+                    <h4 className="font-extrabold text-sm uppercase tracking-wider text-green-200">Lilongwe HQ Time</h4>
                     <p className="text-xl font-bold">08:00 AM - 05:00 PM</p>
                     <p className="text-3xs text-green-100">Monday to Friday (Saturday open 8:30 AM - 12:30 PM)</p>
                   </div>
@@ -823,7 +1025,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
             </p>
             <h3 className="text-lg font-bold text-gray-800">2. Security of Data</h3>
             <p className="text-xs text-gray-600 leading-relaxed">
-              All credentials are cryptographically hashed using industry-standard protocols. Financial transactions and stock purchases are handled securely via authorized staff members inside our Limbe facility. We never share customer logs with third-party advertising companies.
+              All credentials are cryptographically hashed using industry-standard protocols. Financial transactions and stock purchases are handled securely via authorized staff members inside our Lilongwe facility. We never share customer logs with third-party advertising companies.
             </p>
           </div>
         );
@@ -973,16 +1175,27 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                       <div className="p-6 bg-amber-50 rounded-2xl text-center space-y-3">
                         <p className="text-xs text-amber-800 font-semibold">You must be registered to request quotations.</p>
                         <p className="text-3xs text-amber-700 leading-relaxed">Create a free Customer Portal profile to track quotations, view VAT invoices, and track orders directly in real-time.</p>
-                        <button
-                          onClick={() => {
-                            setActiveProduct(null);
-                            onOpenAuth("register");
-                          }}
-                          className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-3xs rounded-lg transition-colors focus:outline-none"
-                          style={{ backgroundColor: secondaryColor }}
-                        >
-                          Register Customer Profile
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+                          <button
+                            onClick={() => {
+                              setActiveProduct(null);
+                              onOpenAuth("register");
+                            }}
+                            className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-3xs rounded-lg transition-colors focus:outline-none"
+                            style={{ backgroundColor: secondaryColor }}
+                          >
+                            Register Customer Profile
+                          </button>
+                          <a
+                            href={`https://wa.me/265992145083?text=${encodeURIComponent(`Hello Ocean's Harvest! I am browsing as a guest and would like to order or inquire about: ${activeProduct.name}.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-3xs rounded-lg transition-colors focus:outline-none flex items-center justify-center space-x-1"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span>Instant WhatsApp Order</span>
+                          </a>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1016,6 +1229,140 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                 {lightboxImage.description && <p className="text-xs text-gray-400 max-w-xl mx-auto">{lightboxImage.description}</p>}
               </div>
             </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 3. PRINTABLE CATALOGUE MODAL */}
+      <AnimatePresence>
+        {showPrintCatalogue && (
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-sm print:bg-white print:p-0 p-4 sm:p-10 flex justify-center items-start">
+            <style dangerouslySetInnerHTML={{__html: `
+              @media print {
+                body * {
+                  visibility: hidden;
+                }
+                #printable-catalog-modal, #printable-catalog-modal * {
+                  visibility: visible;
+                }
+                #printable-catalog-modal {
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  width: 100%;
+                  margin: 0;
+                  padding: 0;
+                  box-shadow: none !important;
+                  border: none !important;
+                }
+                .no-print {
+                  display: none !important;
+                }
+              }
+            `}} />
+            
+            <motion.div
+              id="printable-catalog-modal"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl w-full max-w-4xl p-8 sm:p-12 shadow-2xl space-y-8 relative border border-gray-100"
+            >
+              {/* Close and Print Bar */}
+              <div className="flex justify-between items-center pb-6 border-b border-gray-100 no-print">
+                <div className="flex items-center space-x-2">
+                  <Printer className="w-5 h-5 text-emerald-600" />
+                  <span className="text-sm font-bold text-gray-800">Print Preview</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => window.print()}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shadow-md"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Print/Save PDF</span>
+                  </button>
+                  <button
+                    onClick={() => setShowPrintCatalogue(false)}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Close</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Printable Content Container */}
+              <div className="space-y-8">
+                {/* Letterhead Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b-2 border-emerald-950 pb-6 text-left">
+                  <div className="space-y-1">
+                    <h1 className="text-2xl sm:text-3xl font-black text-emerald-950 tracking-tight">Ocean's Harvest</h1>
+                    <p className="text-xs font-bold text-amber-600 tracking-wider uppercase">Ocean General Dealers | Established 2019</p>
+                    <p className="text-2xs text-gray-400">Quality You Can Trust</p>
+                  </div>
+                  <div className="space-y-1 text-xs text-gray-500 sm:text-right">
+                    <p className="font-bold text-gray-800">Physical Location:</p>
+                    <p>{settings?.address || "P.O. Box X273, Lilongwe, Malawi"}</p>
+                    <p className="font-bold text-gray-800 mt-2">Business Inquiries:</p>
+                    <p>{settings?.email || "Oceangeneraldealers23@gmail.com"}</p>
+                    <p className="font-semibold text-emerald-800">{settings?.phone1 || "+265 993 86 16 49"} / {settings?.phone2 || "+265 882 638 704"}</p>
+                  </div>
+                </div>
+
+                {/* Cover Note */}
+                <div className="text-left space-y-2">
+                  <h2 className="text-lg font-bold text-gray-800">Official Wholesale Commodities Catalog</h2>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Ocean General Dealers supplies premium food products, processed stone-free grains, and high-protein feeds across the Lilongwe capital and neighboring districts. The prices listed below represent current dealer wholesale rates. Bulk orders may qualify for seasonal volume discount rates.
+                  </p>
+                </div>
+
+                {/* Table of Products */}
+                <div className="overflow-x-auto border border-gray-100 rounded-2xl">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-emerald-950 text-white font-bold uppercase tracking-wider text-[10px]">
+                        <th className="p-4 rounded-tl-2xl">Product Commodity</th>
+                        <th className="p-4">Category</th>
+                        <th className="p-4">Specification / Description</th>
+                        <th className="p-4">Unit Weight</th>
+                        <th className="p-4 rounded-tr-2xl text-right">Standard Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
+                      {products.map((p) => (
+                        <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="p-4 font-bold text-gray-900">{p.name}</td>
+                          <td className="p-4">
+                            <span className="bg-green-50 text-green-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-green-100">
+                              {p.category}
+                            </span>
+                          </td>
+                          <td className="p-4 text-gray-500 text-[11px] leading-normal">{p.description}</td>
+                          <td className="p-4 text-gray-900 font-bold">{p.unit}</td>
+                          <td className="p-4 text-right text-gray-900 font-bold">{formatMwk(p.priceMwk)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Footer Signoff */}
+                <div className="pt-8 border-t border-gray-100 flex flex-col sm:flex-row justify-between gap-6 text-2xs text-gray-400 text-left">
+                  <div className="space-y-1">
+                    <p className="font-bold text-gray-700">Terms & Bulk Fulfillment Policy:</p>
+                    <p>• Prices are quoted in MWK (Malawi Kwacha) and are subject to market adjustments.</p>
+                    <p>• Standard Lilongwe doorstep delivery applies to pre-selected zones.</p>
+                    <p>• To execute contract delivery or request VAT invoicing, please utilize the Portal or call.</p>
+                  </div>
+                  <div className="sm:text-right space-y-1">
+                    <p className="font-bold text-gray-700">Sales Dispatch Authorization</p>
+                    <p className="mt-4 border-t border-gray-200 pt-1 w-48 inline-block sm:float-right font-bold text-gray-800">Ocean General Dealers Manager</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>

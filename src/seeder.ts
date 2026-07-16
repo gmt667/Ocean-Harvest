@@ -23,12 +23,12 @@ export async function runSeeder() {
       const defaultSettings: Setting = {
         id: "global",
         companyName: "Ocean General Dealers",
-        brandName: "Ocean Harvest",
+        brandName: "Ocean's Harvest",
         email: "Oceangeneraldealers23@gmail.com",
         phone1: "+265 993 86 16 49",
         phone2: "+265 882 638 704",
         phone3: "+265 992 145 083",
-        address: "P.O. Box 3012, Limbe, Blantyre, Malawi",
+        address: "P.O. Box X273, Lilongwe, Malawi",
         vatRate: 16.5,
         logoUrl: "https://images.unsplash.com/photo-1530982009887-a6538b8291a4?w=150&auto=format&fit=crop&q=60", // dynamic or custom placeholder
         primaryColor: "#022c22", // deep emerald-950
@@ -255,7 +255,7 @@ export async function runSeeder() {
         {
           id: "t_1",
           name: "Grace Phiri",
-          role: "Procurement Officer, Blantyre Inn",
+          role: "Procurement Officer, Lilongwe Inn",
           content: "The Premium Stone-Free Rice from Ocean Harvest has transformed our restaurant reviews. Clean, tasty, and never has stones! Delivery is always right on schedule.",
           rating: 5
         },
@@ -263,7 +263,7 @@ export async function runSeeder() {
           id: "t_2",
           name: "Chimwemwe Banda",
           role: "Owner, Lilongwe Wholesalers",
-          content: "We purchase Kayera beans and Maize in bulk. Ocean General Dealers offers the best wholesale rates in Blantyre, allowing us to maintain competitive margins.",
+          content: "We purchase Kayera beans and Maize in bulk. Ocean General Dealers offers the best wholesale rates in Lilongwe, allowing us to maintain competitive margins.",
           rating: 5
         },
         {
@@ -288,7 +288,7 @@ export async function runSeeder() {
         {
           id: "faq_1",
           question: "Where is Ocean General Dealers located?",
-          answer: "Our main warehouses and administrative offices are located in Limbe, Blantyre, Malawi. We supply businesses and customers nationwide."
+          answer: "Our main warehouses and administrative offices are located in Lilongwe, Malawi. We supply businesses and customers nationwide."
         },
         {
           id: "faq_2",
@@ -322,7 +322,7 @@ export async function runSeeder() {
           title: "Warehouse Inventory",
           category: "Warehouses",
           imageUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&auto=format&fit=crop&q=80",
-          description: "Our organized storage warehouse in Limbe keeping products fresh and secure."
+          description: "Our organized storage warehouse in Lilongwe keeping products fresh and secure."
         },
         {
           id: "gal_2",

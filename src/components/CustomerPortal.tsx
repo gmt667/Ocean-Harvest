@@ -646,7 +646,7 @@ export const CustomerPortal: React.FC = () => {
             <div className="space-y-6">
               <div className="border-b border-gray-50 pb-4">
                 <h2 className="text-xl font-bold text-gray-900">Contact Support</h2>
-                <p className="text-xs text-gray-500 mt-1">Submit an online support request to Limbe offices. Staff will review and email you shortly.</p>
+                <p className="text-xs text-gray-500 mt-1">Submit an online support request to Lilongwe offices. Staff will review and email you shortly.</p>
               </div>
 
               <form onSubmit={handleSupportSubmit} className="space-y-4 max-w-lg">
@@ -710,7 +710,7 @@ export const CustomerPortal: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-extrabold text-gray-900">{settings?.companyName || "Ocean General Dealers"}</h3>
                   <p className="text-3xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Ocean Harvest Brand</p>
-                  <p className="text-2xs text-gray-500 mt-2">{settings?.address || "Limbe, Blantyre, Malawi"}</p>
+                  <p className="text-2xs text-gray-500 mt-2">{settings?.address || "P.O. Box X273, Lilongwe, Malawi"}</p>
                   <p className="text-2xs text-gray-500">Call: {settings?.phone1 || "+265 993 86 16 49"}</p>
                 </div>
                 <div className="text-right sm:text-right">
@@ -732,7 +732,7 @@ export const CustomerPortal: React.FC = () => {
                 <div className="text-left sm:text-right">
                   <p className="text-3xs font-extrabold text-gray-400 uppercase tracking-wider">Order Details</p>
                   <p className="text-2xs text-gray-600 mt-1">Status: <span className="font-bold text-green-700">{activeInvoiceOrder.status}</span></p>
-                  <p className="text-2xs text-gray-600 mt-0.5">Timezone: Africa/Blantyre</p>
+                  <p className="text-2xs text-gray-600 mt-0.5">Timezone: Malawi Standard Time</p>
                 </div>
               </div>
 
