@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Award,
   Users,
+  ChevronLeft,
   ChevronRight,
   ArrowRight,
   Send,
@@ -86,29 +87,79 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
 
   // Hero Background Slideshow State
   const [currentHeroImageIndex, setCurrentHeroImageIndex] = useState(0);
+  const [carouselDirection, setCarouselDirection] = useState(0); // -1 for left, 1 for right
 
-  const heroImages = [
-    "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=1200&auto=format&fit=crop&q=80", // Malawian field / agriculture
-    "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1200&auto=format&fit=crop&q=80", // Premium Stone-Free Rice
-    "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?w=1200&auto=format&fit=crop&q=80", // Maize
-    "https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=1200&auto=format&fit=crop&q=80", // Beans
-    "https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=1200&auto=format&fit=crop&q=80"  // Quails/eggs/farm fresh
-  ];
+  // Dynamic array of background images for the product categories
+  const dynamicHeroSlides = React.useMemo(() => {
+    if (!categories || categories.length === 0) {
+      return [
+        {
+          id: "default_1",
+          label: "Premium Sourcing",
+          title: "Ocean's Harvest",
+          description: "Sustaining Malawian families with top tier farm crops since 2019.",
+          imageUrl: "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=1200&auto=format&fit=crop&q=80"
+        }
+      ];
+    }
 
-  const imageCaptions = [
-    { label: "Premium Sourcing", title: "Ocean's Harvest", description: "Sustaining Malawian families with top tier farm crops since 2019." },
-    { label: "Grains & Cereals", title: "Stone-Free Rice", description: "Carefully processed and bagged ready-to-cook premium white rice." },
-    { label: "Essential Grains", title: "Malawian Maize", description: "Bulk supply of premium white maize for households & institutions." },
-    { label: "Legumes & Beans", title: "Nutritious Beans", description: "Kamtauzeni, Nanyati, Kayera, and Red Kidney beans." },
-    { label: "Livestock & Poultry", title: "Quails & Chicken Eggs", description: "Farm-fresh high protein eggs and healthy Zinziri (quails)." }
-  ];
+    return categories.map((cat) => {
+      // Find a matching product to use its image dynamically
+      const matchingProduct = products.find(
+        (p) => p.category.toLowerCase().trim() === cat.name.toLowerCase().trim()
+      );
+      
+      let imageUrl = matchingProduct?.imageUrl;
+
+      if (!imageUrl) {
+        const nameLower = cat.name.toLowerCase();
+        if (nameLower.includes("grain") || nameLower.includes("rice") || nameLower.includes("cereal") || nameLower.includes("maize")) {
+          imageUrl = "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1200&auto=format&fit=crop&q=80";
+        } else if (nameLower.includes("bean") || nameLower.includes("legume") || nameLower.includes("pulse")) {
+          imageUrl = "https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=1200&auto=format&fit=crop&q=80";
+        } else if (nameLower.includes("livestock") || nameLower.includes("poultry") || nameLower.includes("quail") || nameLower.includes("egg")) {
+          imageUrl = "https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?w=1200&auto=format&fit=crop&q=80";
+        } else if (nameLower.includes("sauce") || nameLower.includes("chilli") || nameLower.includes("condiment")) {
+          imageUrl = "https://images.unsplash.com/photo-1614030424754-24d1f97a54a9?w=1200&auto=format&fit=crop&q=80";
+        } else {
+          imageUrl = "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=1200&auto=format&fit=crop&q=80";
+        }
+      }
+
+      return {
+        id: cat.id,
+        label: cat.name,
+        title: cat.name,
+        description: cat.description || `Fresh and premium-quality supply of ${cat.name} sourced directly from Malawian farms.`,
+        imageUrl: imageUrl
+      };
+    });
+  }, [categories, products]);
 
   React.useEffect(() => {
+    if (dynamicHeroSlides.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentHeroImageIndex((prev) => (prev + 1) % 5);
+      setCarouselDirection(1);
+      setCurrentHeroImageIndex((prev) => (prev + 1) % dynamicHeroSlides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [dynamicHeroSlides.length]);
+
+  React.useEffect(() => {
+    if (currentHeroImageIndex >= dynamicHeroSlides.length) {
+      setCurrentHeroImageIndex(0);
+    }
+  }, [dynamicHeroSlides.length, currentHeroImageIndex]);
+
+  const handleNextSlide = () => {
+    setCarouselDirection(1);
+    setCurrentHeroImageIndex((prev) => (prev + 1) % dynamicHeroSlides.length);
+  };
+
+  const handlePrevSlide = () => {
+    setCarouselDirection(-1);
+    setCurrentHeroImageIndex((prev) => (prev - 1 + dynamicHeroSlides.length) % dynamicHeroSlides.length);
+  };
 
   // -------------------------------------------------------------
   // CONTACT FORM SUBMISSION
@@ -165,23 +216,65 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
 
             {/* Hero Section */}
             <section className="relative overflow-hidden py-24 sm:py-32 border-b border-gray-100 min-h-[550px] flex items-center">
-              {/* Background Slideshow */}
+              {/* Background Carousel */}
               <div className="absolute inset-0 z-0">
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence initial={false} custom={carouselDirection} mode="popLayout">
                   <motion.div
                     key={currentHeroImageIndex}
-                    initial={{ opacity: 0, scale: 1.05 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 1.2, ease: "easeInOut" }}
+                    custom={carouselDirection}
+                    variants={{
+                      enter: (direction: number) => ({
+                        x: direction > 0 ? "100%" : direction < 0 ? "-100%" : "0%",
+                        opacity: 0,
+                        scale: 1.05
+                      }),
+                      center: {
+                        x: "0%",
+                        opacity: 1,
+                        scale: 1
+                      },
+                      exit: (direction: number) => ({
+                        x: direction < 0 ? "100%" : direction > 0 ? "-100%" : "0%",
+                        opacity: 0,
+                        scale: 0.95
+                      })
+                    }}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 32 },
+                      opacity: { duration: 0.6 },
+                      scale: { duration: 0.6 }
+                    }}
                     className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${heroImages[currentHeroImageIndex]})` }}
+                    style={{ backgroundImage: `url(${dynamicHeroSlides[currentHeroImageIndex]?.imageUrl})` }}
                   />
                 </AnimatePresence>
                 {/* Semi-transparent dark overlay for high text contrast */}
                 <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px]" />
                 {/* Overlay vignette */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/30" />
+              </div>
+
+              {/* Carousel Controls */}
+              <div className="absolute inset-y-0 left-4 z-20 flex items-center">
+                <button
+                  onClick={handlePrevSlide}
+                  className="p-3 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/25"
+                  aria-label="Previous Slide"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="absolute inset-y-0 right-4 z-20 flex items-center">
+                <button
+                  onClick={handleNextSlide}
+                  className="p-3 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md border border-white/10 transition-all hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/25"
+                  aria-label="Next Slide"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
 
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
@@ -219,15 +312,37 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                 <div className="relative hidden lg:block">
                   <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-amber-500/20 rounded-3xl filter blur-2xl opacity-60 transform rotate-6 scale-95" />
                   <div className="relative overflow-hidden rounded-3xl shadow-2xl h-[450px] border border-white/10 bg-slate-900">
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence initial={false} custom={carouselDirection} mode="popLayout">
                       <motion.img
                         key={currentHeroImageIndex}
-                        src={heroImages[currentHeroImageIndex]}
-                        alt={imageCaptions[currentHeroImageIndex].title}
-                        initial={{ opacity: 0, x: 50, scale: 1.05 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: -50, scale: 0.95 }}
-                        transition={{ duration: 0.8, ease: "easeInOut" }}
+                        src={dynamicHeroSlides[currentHeroImageIndex]?.imageUrl}
+                        alt={dynamicHeroSlides[currentHeroImageIndex]?.title}
+                        custom={carouselDirection}
+                        variants={{
+                          enter: (direction: number) => ({
+                            x: direction > 0 ? "100%" : direction < 0 ? "-100%" : "0%",
+                            opacity: 0,
+                            scale: 1.05
+                          }),
+                          center: {
+                            x: "0%",
+                            opacity: 1,
+                            scale: 1
+                          },
+                          exit: (direction: number) => ({
+                            x: direction < 0 ? "100%" : direction > 0 ? "-100%" : "0%",
+                            opacity: 0,
+                            scale: 0.95
+                          })
+                        }}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{
+                          x: { type: "spring", stiffness: 300, damping: 32 },
+                          opacity: { duration: 0.5 },
+                          scale: { duration: 0.5 }
+                        }}
                         className="w-full h-full object-cover"
                       />
                     </AnimatePresence>
@@ -236,18 +351,21 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                     {/* Floating caption over image */}
                     <div className="absolute bottom-6 left-6 right-6 text-left text-white z-20">
                       <span className="inline-block px-2.5 py-0.5 rounded-full text-4xs font-extrabold uppercase tracking-widest bg-amber-400 text-slate-950 mb-2">
-                        {imageCaptions[currentHeroImageIndex].label}
+                        {dynamicHeroSlides[currentHeroImageIndex]?.label}
                       </span>
-                      <h3 className="text-xl font-black text-white">{imageCaptions[currentHeroImageIndex].title}</h3>
-                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">{imageCaptions[currentHeroImageIndex].description}</p>
+                      <h3 className="text-xl font-black text-white">{dynamicHeroSlides[currentHeroImageIndex]?.title}</h3>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">{dynamicHeroSlides[currentHeroImageIndex]?.description}</p>
                     </div>
 
                     {/* Simple dots indicator */}
                     <div className="absolute top-6 right-6 flex space-x-1.5 z-20">
-                      {heroImages.map((_, idx) => (
+                      {dynamicHeroSlides.map((_, idx) => (
                         <button
                           key={idx}
-                          onClick={() => setCurrentHeroImageIndex(idx)}
+                          onClick={() => {
+                            setCarouselDirection(idx > currentHeroImageIndex ? 1 : -1);
+                            setCurrentHeroImageIndex(idx);
+                          }}
                           className={`w-2 h-2 rounded-full transition-all ${
                             idx === currentHeroImageIndex ? "bg-white w-4" : "bg-white/40"
                           }`}
@@ -1046,7 +1164,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                       <div>
                         <p className="text-xs font-bold text-gray-900">Physical Warehouse Address</p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {settings?.address || "P.O. Box X273, Lilongwe, Malawi"}
+                          {settings?.address || "P.O Box X273 Lilongwe"}
                         </p>
                       </div>
                     </div>
@@ -1381,7 +1499,7 @@ export const PublicPages: React.FC<PublicPagesProps> = ({ currentTab, setTab, on
                   </div>
                   <div className="space-y-1 text-xs text-gray-500 sm:text-right">
                     <p className="font-bold text-gray-800">Physical Location:</p>
-                    <p>{settings?.address || "P.O. Box X273, Lilongwe, Malawi"}</p>
+                    <p>{settings?.address || "P.O Box X273 Lilongwe"}</p>
                     <p className="font-bold text-gray-800 mt-2">Business Inquiries:</p>
                     <p>{settings?.email || "Oceangeneraldealers23@gmail.com"}</p>
                     <p className="font-semibold text-emerald-800">{settings?.phone1 || "+265 993 86 16 49"} / {settings?.phone2 || "+265 882 638 704"}</p>

@@ -722,7 +722,7 @@ export const CustomerPortal: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-extrabold text-gray-900">{settings?.companyName || "Ocean General Dealers"}</h3>
                   <p className="text-3xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Ocean Harvest Brand</p>
-                  <p className="text-2xs text-gray-500 mt-2">{settings?.address || "P.O. Box X273, Lilongwe, Malawi"}</p>
+                  <p className="text-2xs text-gray-500 mt-2">{settings?.address || "P.O Box X273 Lilongwe"}</p>
                   <p className="text-2xs text-gray-500">Call: {settings?.phone1 || "+265 993 86 16 49"}</p>
                 </div>
                 <div className="text-right sm:text-right">

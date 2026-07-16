@@ -28,7 +28,7 @@ export async function runSeeder() {
         phone1: "+265 993 86 16 49",
         phone2: "+265 882 638 704",
         phone3: "+265 992 145 083",
-        address: "P.O. Box X273, Lilongwe, Malawi",
+        address: "P.O Box X273 Lilongwe",
         vatRate: 16.5,
         logoUrl: "https://images.unsplash.com/photo-1530982009887-a6538b8291a4?w=150&auto=format&fit=crop&q=60", // dynamic or custom placeholder
         primaryColor: "#022c22", // deep emerald-950
@@ -88,7 +88,7 @@ export async function runSeeder() {
         name: "Premium Stone-Free Rice",
         description: "Clean, premium-quality rice carefully processed for households, retailers, wholesalers, hotels, and institutions.",
         category: "Grains & Cereals",
-        imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1536304997881-a372c179924b?w=600&auto=format&fit=crop&q=80",
         priceMwk: 12000,
         stockLevel: 150,
         unit: "5kg Bag",
@@ -154,7 +154,7 @@ export async function runSeeder() {
         name: "Maize",
         description: "Quality maize supplied to homes, schools, institutions, and businesses.",
         category: "Grains & Cereals",
-        imageUrl: "https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?w=600&auto=format&fit=crop&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=600&auto=format&fit=crop&q=80",
         priceMwk: 15000,
         stockLevel: 500,
         unit: "50kg Bag",
@@ -176,7 +176,7 @@ export async function runSeeder() {
         name: "Zinziri (Quails)",
         description: "Healthy and professionally raised quails.",
         category: "Livestock & Poultry",
-        imageUrl: "https://images.unsplash.com/photo-1594142404563-64cccaf5a117?w=600&auto=format&fit=crop&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1612170153139-6f881ff067e0?w=600&auto=format&fit=crop&q=80",
         priceMwk: 1500,
         stockLevel: 120,
         unit: "Per Bird",
@@ -198,7 +198,7 @@ export async function runSeeder() {
         name: "Garlic Chilli Sauce",
         description: "Premium garlic chilli sauce made from quality ingredients.",
         category: "Sauces & Condiments",
-        imageUrl: "https://images.unsplash.com/photo-1614030424754-24d1f97a54a9?w=600&auto=format&fit=crop&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=600&auto=format&fit=crop&q=80",
         priceMwk: 2500,
         stockLevel: 150,
         unit: "500ml Bottle",
@@ -208,6 +208,9 @@ export async function runSeeder() {
     for (const prod of defaultProducts) {
       if (!existingProdIds.has(prod.id)) {
         await setDoc(doc(db, "products", prod.id), prod);
+      } else {
+        // Automatically sync and update to the ultra-relatable images for pre-seeded records
+        await setDoc(doc(db, "products", prod.id), { imageUrl: prod.imageUrl }, { merge: true });
       }
     }
     console.log("Products seeding check complete.");
