@@ -22,7 +22,8 @@ import {
   CheckCircle2,
   Check,
   Eye,
-  EyeOff
+  EyeOff,
+  Info
 } from "lucide-react";
 import { UserRole } from "./types";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -42,6 +43,7 @@ function MainAppContent() {
   const [shake, setShake] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [focusedField, setFocusedField] = useState<"name" | "email" | "password" | null>(null);
 
   useEffect(() => {
     const remembered = localStorage.getItem("remembered_email");
@@ -350,6 +352,8 @@ function MainAppContent() {
                           required
                           value={authName}
                           onChange={(e) => setAuthName(e.target.value)}
+                          onFocus={() => setFocusedField("name")}
+                          onBlur={() => setFocusedField(null)}
                           className="w-full pl-11 pr-10 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm transition-all focus:outline-none focus:bg-white focus:ring-4 focus:ring-emerald-950/10 focus:border-emerald-900"
                           placeholder="Hon. Peter Banda"
                         />
@@ -362,6 +366,23 @@ function MainAppContent() {
                             )}
                           </div>
                         )}
+                        <AnimatePresence>
+                          {focusedField === "name" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                              className="absolute bottom-full left-0 mb-3 w-full z-10 bg-slate-900 text-white text-2xs sm:text-xs rounded-xl p-3 shadow-xl border border-slate-800 flex items-start gap-2.5"
+                            >
+                              <Info className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                              <div className="space-y-0.5 text-left">
+                                <p className="font-bold text-white text-xs">Full Name Expectation</p>
+                                <p className="text-slate-300 leading-normal">Enter your legal first name and surname (at least 3 characters) for business and tax billing records.</p>
+                              </div>
+                              <div className="absolute top-full left-6 w-3 h-3 bg-slate-900 border-r border-b border-slate-800 rotate-45 -translate-y-[6px]" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
                   )}
@@ -376,6 +397,8 @@ function MainAppContent() {
                         required
                         value={authEmail}
                         onChange={(e) => setAuthEmail(e.target.value)}
+                        onFocus={() => setFocusedField("email")}
+                        onBlur={() => setFocusedField(null)}
                         className="w-full pl-11 pr-10 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm transition-all focus:outline-none focus:bg-white focus:ring-4 focus:ring-emerald-950/10 focus:border-emerald-900"
                         placeholder="buyer@example.com"
                       />
@@ -388,6 +411,23 @@ function MainAppContent() {
                           )}
                         </div>
                       )}
+                      <AnimatePresence>
+                        {focusedField === "email" && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                            className="absolute bottom-full left-0 mb-3 w-full z-10 bg-slate-900 text-white text-2xs sm:text-xs rounded-xl p-3 shadow-xl border border-slate-800 flex items-start gap-2.5"
+                          >
+                            <Info className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                            <div className="space-y-0.5 text-left">
+                              <p className="font-bold text-white text-xs">Email Address Expectation</p>
+                              <p className="text-slate-300 leading-normal">Enter a valid email (e.g. user@domain.com). This will be used for secure logins and quote status notifications.</p>
+                            </div>
+                            <div className="absolute top-full left-6 w-3 h-3 bg-slate-900 border-r border-b border-slate-800 rotate-45 -translate-y-[6px]" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
 
@@ -412,6 +452,8 @@ function MainAppContent() {
                           required
                           value={authPassword}
                           onChange={(e) => setAuthPassword(e.target.value)}
+                          onFocus={() => setFocusedField("password")}
+                          onBlur={() => setFocusedField(null)}
                           className="w-full pl-11 pr-20 py-3 sm:py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm transition-all focus:outline-none focus:bg-white focus:ring-4 focus:ring-emerald-950/10 focus:border-emerald-900"
                           placeholder="••••••••"
                         />
@@ -438,6 +480,29 @@ function MainAppContent() {
                             </div>
                           )}
                         </div>
+                        <AnimatePresence>
+                          {focusedField === "password" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                              className="absolute bottom-full left-0 mb-3 w-full z-10 bg-slate-900 text-white text-2xs sm:text-xs rounded-xl p-3 shadow-xl border border-slate-800 flex items-start gap-2.5"
+                            >
+                              <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                              <div className="space-y-0.5 text-left">
+                                <p className="font-bold text-white text-xs">
+                                  {authModal === "register" ? "Password Requirements" : "Password Hint"}
+                                </p>
+                                <p className="text-slate-300 leading-normal">
+                                  {authModal === "register" 
+                                    ? "Must be at least 8 characters and include at least one number (0-9) and one special symbol." 
+                                    : "Enter your registered account password (minimum 6 characters)."}
+                                </p>
+                              </div>
+                              <div className="absolute top-full left-6 w-3 h-3 bg-slate-900 border-r border-b border-slate-800 rotate-45 -translate-y-[6px]" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
 
                       {authModal === "login" && (
